@@ -19,7 +19,7 @@
   html,body{
     width:100%; height:100%;
     overflow:hidden;
-    font-family:'Arial Black','Segoe UI', Arial, sans-serif;
+    font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
     background:var(--red);
     -webkit-user-select:none;
     user-select:none;
@@ -62,106 +62,165 @@
     padding:0.4vh 1.5vw 0.4vh;
   }
 
+  /* ---------- Header ---------- */
+  .top-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:1.2vh 0 0.6vh;
+  }
+  .header-logo{
+    width:34px; height:34px;
+    min-width:34px;
+    border-radius:50%;
+    background:#fff;
+    color:var(--red);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:17px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+  .header-title{
+    color:#fff;
+    font-weight:900;
+    letter-spacing:2px;
+    font-size:clamp(15px,3.4vh,20px);
+    text-transform:uppercase;
+    text-shadow:0 2px 6px rgba(0,0,0,0.3);
+  }
+
   /* ---------- Wheel stage ---------- */
   .wheel-stage{
     position:relative;
     flex:1;
     width:100%;
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     justify-content:center;
-    padding-top:9.5vh;
+    padding-top:5.5vh;
     min-height:0;
   }
 
   .wheel-wrap{
     position:relative;
-    width:min(97vw, 86vh, 860px);
-    height:min(97vw, 86vh, 860px);
+    width:min(90vw, 72vh, 760px);
+    height:min(90vw, 72vh, 760px);
   }
 
   /* ---------- Landscape / telas horizontais ---------- */
   @media (orientation: landscape) {
-    .wheel-stage{ padding-top:9.5vh; }
     .wheel-wrap{
-      width:min(88vh, 56vw, 1100px);
-      height:min(88vh, 56vw, 1100px);
+      width:min(72vh, 48vw, 900px);
+      height:min(72vh, 48vw, 900px);
     }
   }
 
   .pointer{
     position:absolute;
-    top:-4vh;
+    top:-3.6vh;
     left:50%;
     transform:translateX(-50%);
     width:0; height:0;
-    border-left:6.3vh solid transparent;
-    border-right:6.3vh solid transparent;
-    border-top:8.8vh solid var(--yellow);
-    filter:drop-shadow(0 6px 8px rgba(0,0,0,0.55));
+    border-left:4.6vh solid transparent;
+    border-right:4.6vh solid transparent;
+    border-top:6.2vh solid #ffffff;
+    filter:drop-shadow(0 4px 7px rgba(0,0,0,0.45));
     z-index:6;
-  }
-  .pointer::after{
-    content:"";
-    position:absolute;
-    top:-9.6vh; left:-3.5vh;
-    width:7vh; height:7vh;
-    border-radius:50%;
-    background:var(--yellow);
-    box-shadow:0 4px 10px rgba(0,0,0,0.4), inset 0 0 0 4px var(--red-darker);
   }
 
   .wheel-outer-ring{
-    position:absolute; inset:-1.8vh;
+    position:absolute; inset:-1vh;
     border-radius:50%;
-    background:linear-gradient(145deg, var(--yellow), var(--yellow-dark));
-    box-shadow:0 10px 40px rgba(0,0,0,0.5), 0 0 0 3px rgba(255,255,255,0.25) inset;
+    background:linear-gradient(145deg, #ffffff, #e8e8e8);
+    box-shadow:0 10px 32px rgba(0,0,0,0.45), 0 0 0 3px rgba(234,29,44,0.12) inset;
   }
   .wheel-outer-ring::before{
     content:"";
-    position:absolute; inset:1.5vh;
+    position:absolute; inset:0.8vh;
     border-radius:50%;
-    background:var(--red-darker);
+    background:#ffffff;
   }
 
   canvas#wheelCanvas{
     position:absolute;
-    inset:2.8vh;
-    width:calc(100% - 5.6vh);
-    height:calc(100% - 5.6vh);
+    inset:2.2vh;
+    width:calc(100% - 4.4vh);
+    height:calc(100% - 4.4vh);
     border-radius:50%;
     cursor:pointer;
-    box-shadow:0 0 0 2px rgba(255,255,255,0.15) inset;
+    box-shadow:0 0 0 2px rgba(0,0,0,0.06) inset;
+  }
+
+  .wheel-gloss{
+    position:absolute;
+    inset:2.2vh;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:4;
+    background:
+      radial-gradient(circle at 32% 22%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 18%, transparent 42%),
+      radial-gradient(circle at 50% 50%, transparent 60%, rgba(0,0,0,0.08) 100%);
   }
 
   .hub{
     position:absolute;
     top:50%; left:50%;
     transform:translate(-50%,-50%);
-    width:22%; height:22%;
-    min-width:78px; min-height:78px;
+    width:24%; height:24%;
+    min-width:88px; min-height:88px;
     border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #ffffff, #f2f2f2 70%);
+    background:radial-gradient(circle at 35% 30%, var(--red), var(--red-darker) 75%);
     display:flex;
     align-items:center;
     justify-content:center;
     text-align:center;
     cursor:pointer;
     z-index:5;
-    box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 5px var(--yellow), 0 0 0 8px var(--red-darker);
+    box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 5px #ffffff, 0 0 0 7px var(--red-darker);
   }
-  .hub-text{
-    font-size:clamp(9px,1.7vh,13px);
-    font-weight:900;
-    color:var(--red);
-    letter-spacing:0.5px;
-    line-height:1.15;
-    text-transform:uppercase;
+  .hub-icon{
+    font-size:clamp(32px,7.5vw,54px);
+    line-height:1;
   }
   .hub.pulse{ animation:hubPulse 1.8s ease-in-out infinite; }
   @keyframes hubPulse{
-    0%,100%{ box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 5px var(--yellow), 0 0 0 8px var(--red-darker); }
-    50%{ box-shadow:0 6px 24px rgba(0,0,0,0.5), 0 0 0 7px var(--yellow), 0 0 0 10px var(--red-darker); }
+    0%,100%{ box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 5px #ffffff, 0 0 0 7px var(--red-darker); }
+    50%{ box-shadow:0 6px 24px rgba(0,0,0,0.5), 0 0 0 6px #ffffff, 0 0 0 9px var(--red-darker); }
+  }
+
+  /* ---------- Spin button ---------- */
+  .spin-btn-wrap{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    padding:1vh 0 1.6vh;
+  }
+  .spin-btn{
+    border:none;
+    outline:none;
+    cursor:pointer;
+    font-family:inherit;
+    font-weight:900;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--red);
+    background:#ffffff;
+    padding:1.6vh 15vw;
+    font-size:clamp(15px,2.4vh,20px);
+    border-radius:100px;
+    box-shadow:0 6px 0 rgba(0,0,0,0.15), 0 10px 22px rgba(0,0,0,0.35);
+    transition:transform .1s ease;
+  }
+  .spin-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 3px 0 rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.3);
+  }
+  .spin-btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
   }
 
   /* ---------- Modal ---------- */
@@ -320,15 +379,25 @@
   <div class="watermark"></div>
 
   <div class="content">
+    <div class="top-header">
+      <div class="header-logo">★</div>
+      <div class="header-title">Benefícios</div>
+    </div>
+
     <div class="wheel-stage">
       <div class="wheel-wrap">
         <div class="pointer"></div>
         <div class="wheel-outer-ring"></div>
         <canvas id="wheelCanvas" width="1000" height="1000"></canvas>
+        <div class="wheel-gloss"></div>
         <div class="hub pulse" id="hubBtn">
-          <div class="hub-text">BENEFÍCIOS</div>
+          <div class="hub-icon">🙂</div>
         </div>
       </div>
+    </div>
+
+    <div class="spin-btn-wrap">
+      <button class="spin-btn" id="spinBtn">GIRAR</button>
     </div>
   </div>
 </div>
@@ -424,9 +493,9 @@ function drawWheel(rotation){
     ctx.fillStyle = SEGMENT_COLORS[colorIdx];
     ctx.fill();
 
-    // divisor amarelo
-    ctx.strokeStyle = '#FFD700';
-    ctx.lineWidth = 5;
+    // divisor branco
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 4;
     ctx.stroke();
 
     // texto curvado
@@ -439,8 +508,8 @@ function drawWheel(rotation){
   // anel interno
   ctx.beginPath();
   ctx.arc(0, 0, RADIUS, 0, Math.PI * 2);
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = 'rgba(255,215,0,0.9)';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
   ctx.stroke();
 
   ctx.restore();
@@ -455,11 +524,20 @@ function easeOutCubic(t){
   return 1 - Math.pow(1 - t, 3);
 }
 
+function primeSpeech(){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const unlock = new SpeechSynthesisUtterance(' ');
+  unlock.volume = 0;
+  unlock.rate = 10;
+  window.speechSynthesis.speak(unlock);
+}
+
 function spinWheel(){
   if(isSpinning) return;
   isSpinning = true;
   ensureAudioContext();
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  primeSpeech();
   setControlsEnabled(false);
 
   const winnerIndex = Math.floor(Math.random() * N);
@@ -504,10 +582,12 @@ function spinWheel(){
 }
 
 function setControlsEnabled(enabled){
+  document.getElementById('spinBtn').disabled = !enabled;
   document.getElementById('hubBtn').style.pointerEvents = enabled ? 'auto' : 'none';
   canvas.style.pointerEvents = enabled ? 'auto' : 'none';
 }
 
+document.getElementById('spinBtn').addEventListener('click', spinWheel);
 document.getElementById('hubBtn').addEventListener('click', spinWheel);
 canvas.addEventListener('click', spinWheel);
 
