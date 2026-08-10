@@ -132,23 +132,23 @@
   }
 
   .wheel-outer-ring{
-    position:absolute; inset:-1vh;
+    position:absolute; inset:-0.5vh;
     border-radius:50%;
     background:linear-gradient(145deg, #ffffff, #e8e8e8);
     box-shadow:0 10px 32px rgba(0,0,0,0.45), 0 0 0 3px rgba(234,29,44,0.12) inset;
   }
   .wheel-outer-ring::before{
     content:"";
-    position:absolute; inset:0.8vh;
+    position:absolute; inset:0.35vh;
     border-radius:50%;
     background:#ffffff;
   }
 
   canvas#wheelCanvas{
     position:absolute;
-    inset:2.2vh;
-    width:calc(100% - 4.4vh);
-    height:calc(100% - 4.4vh);
+    inset:0.7vh;
+    width:calc(100% - 1.4vh);
+    height:calc(100% - 1.4vh);
     border-radius:50%;
     cursor:pointer;
     box-shadow:0 0 0 2px rgba(0,0,0,0.06) inset;
@@ -156,7 +156,7 @@
 
   .wheel-gloss{
     position:absolute;
-    inset:2.2vh;
+    inset:0.7vh;
     border-radius:50%;
     pointer-events:none;
     z-index:4;
