@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ajuda | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html">👥 Clientes</a>
+    <a href="agenda.html">📅 Agenda</a>
+    <a href="ajuda.html" class="active">❓ Ajuda</a>
+  </nav>
+
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2>Como usar</h2>
+      <p class="panel-subtitle">Passo a passo do fluxo completo, do cadastro até a roleta rodando no totem.</p>
+
+      <div class="form-box" style="max-width:720px; text-align:left;">
+
+        <div class="settings-field">
+          <label>1. Cadastrar um cliente</label>
+          <p class="field-hint">
+            Vá em <strong>Clientes → + Novo cliente</strong>. Preencha o nome, a logo (as cores da roleta
+            mudam sozinhas pra combinar com ela), os prêmios, e opcionalmente o contato e observações
+            internas. Clique em <strong>Salvar cliente</strong>.
+          </p>
+        </div>
+
+        <div class="settings-field">
+          <label>2. Levar a marca pro totem</label>
+          <p class="field-hint">
+            Na lista de <strong>Clientes</strong>, ache o card do cliente e toque em
+            <strong>⬇ Baixar configuração</strong> — isso salva um arquivo <code>.json</code> na pasta
+            Downloads. Leve esse arquivo até o totem (WhatsApp, pendrive, o que for mais fácil).
+          </p>
+          <p class="field-hint">
+            No totem, a engrenagem de configuração fica escondida de propósito (pra não aparecer na frente
+            do cliente final). Pra abrir: <strong>toque e segure o dedo por 1,5 segundo no canto superior
+            direito</strong> da tela da roleta, depois toque em <strong>Importar</strong> e escolha o arquivo.
+          </p>
+        </div>
+
+        <div class="settings-field">
+          <label>3. Organizar a Agenda</label>
+          <p class="field-hint">
+            Em <strong>Agenda → + Nova ativação</strong>, registre a data, o cliente e o local de cada
+            ativação combinada. Isso é só organização interna da rádio — não afeta o totem nem o arquivo
+            de configuração.
+          </p>
+        </div>
+
+        <div class="settings-field">
+          <label>Perguntas frequentes</label>
+
+          <p class="field-hint">
+            <strong>Esqueci minha senha, e agora?</strong><br>
+            Fale com o suporte técnico (Emvix) — a senha é resetada manualmente pelo painel do Supabase,
+            não tem recuperação automática por e-mail ainda.
+          </p>
+
+          <p class="field-hint">
+            <strong>O que é a cópia de backup automática?</strong><br>
+            Toda vez que você salva um cliente, além de atualizar a ficha, o sistema guarda uma cópia
+            extra do arquivo de configuração num lugar separado. Se algo der errado com o cadastro
+            principal, essa cópia continua existindo.
+          </p>
+
+          <p class="field-hint">
+            <strong>A engrenagem no totem ainda serve pra alguma coisa?</strong><br>
+            Sim — ela é o plano B. O painel é o jeito organizado de configurar vários clientes, mas o
+            totem continua funcionando sozinho (sem internet, sem login) através da engrenagem, caso
+            precise de um ajuste rápido no local ou o painel esteja fora do ar.
+          </p>
+
+          <p class="field-hint">
+            <strong>Um cliente foi excluído sem querer, dá pra recuperar?</strong><br>
+            A ficha ativa não volta sozinha, mas as cópias de backup de cada salvamento continuam
+            guardadas — fale com o suporte técnico pra restaurar a partir de uma delas.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+</script>
+</body>
+</html>
