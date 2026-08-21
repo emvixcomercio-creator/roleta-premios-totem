@@ -629,6 +629,22 @@
   }
   .prize-add-btn:active{ background:#f6f6f6; }
   .prize-add-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .settings-backup-actions{
+    display:flex; gap:10px;
+  }
+  .settings-backup-btn{
+    flex:1;
+    border:2px solid #ddd;
+    background:#fafafa;
+    color:#555;
+    font-family:inherit;
+    font-weight:800;
+    font-size:13px;
+    padding:1.2vh 0;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .settings-backup-btn:active{ background:#f0f0f0; }
   .settings-actions{
     display:flex; flex-direction:column; gap:10px;
     margin-top:1vh;
@@ -760,6 +776,16 @@
       <p class="field-hint">Edite o texto de cada gomo e marque se ele é um prêmio ("Ganha") ou não ("Não ganha", tipo "Tente Novamente"). Use os botões pra adicionar ou remover gomos (mínimo 2, máximo 10).</p>
       <div id="prizesEditor" class="prizes-editor"></div>
       <button type="button" class="prize-add-btn" id="prizeAddBtn">+ Adicionar prêmio</button>
+    </div>
+
+    <div class="settings-field">
+      <label>Backup da configuração</label>
+      <p class="field-hint">Exporte um arquivo com a marca e os prêmios configurados pra guardar de reserva ou levar pra outro totem. Se o navegador for limpo, restaure tudo em segundos importando esse arquivo.</p>
+      <div class="settings-backup-actions">
+        <button type="button" class="settings-backup-btn" id="exportBtn">⬇ Exportar</button>
+        <button type="button" class="settings-backup-btn" id="importBtn">⬆ Importar</button>
+        <input type="file" id="importInput" accept="application/json" style="display:none;">
+      </div>
     </div>
 
     <div class="settings-actions">
@@ -1531,6 +1557,64 @@ document.getElementById('settingsSaveBtn').addEventListener('click', async () =>
   applyPrizes(newPrizes);
 
   closeSettingsPanel();
+});
+
+function flashBackupBtnText(btn, text, ms){
+  const original = btn.textContent;
+  btn.textContent = text;
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = original; btn.disabled = false; }, ms);
+}
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const payload = {
+    system: 'giraEGanha',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    brand: loadBrand(),
+    prizes: loadPrizes() || DEFAULT_PRIZES
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const brandSlug = (payload.brand && payload.brand.title ? payload.brand.title : 'roleta')
+    .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gira-e-ganha-config-${brandSlug || 'roleta'}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  flashBackupBtnText(document.getElementById('exportBtn'), '✅ Exportado!', 1800);
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importInput').click();
+});
+
+document.getElementById('importInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const importBtn = document.getElementById('importBtn');
+  e.target.value = '';
+  if(!file) return;
+  try{
+    const payload = JSON.parse(await file.text());
+    if(!payload || typeof payload !== 'object' || !('brand' in payload) || !('prizes' in payload)){
+      throw new Error('formato inválido');
+    }
+    if(payload.brand) saveBrand(payload.brand); else clearBrand();
+
+    const prizes = (Array.isArray(payload.prizes) && payload.prizes.length >= MIN_PRIZES && payload.prizes.length <= MAX_PRIZES)
+      ? payload.prizes : DEFAULT_PRIZES;
+    localStorage.setItem(PRIZES_KEY, JSON.stringify(prizes));
+
+    applyBrand(loadBrand());
+    applyPrizes(prizes);
+    openSettingsPanel();
+    flashBackupBtnText(importBtn, '✅ Importado!', 1800);
+  } catch(err){
+    flashBackupBtnText(importBtn, '⚠️ Arquivo inválido', 1800);
+  }
 });
 
 document.getElementById('settingsResetBtn').addEventListener('click', () => {
