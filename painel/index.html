@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="login-screen">
+  <div class="login-box">
+    <img class="login-logo" src="assets/radio-transcontinental-logo.png" alt="Rádio Transcontinental FM 104,7">
+    <h1>Painel de Ativações</h1>
+    <form id="loginForm">
+      <div class="login-field">
+        <label for="emailInput">E-mail</label>
+        <input type="email" id="emailInput" autocomplete="username" required>
+      </div>
+      <div class="login-field">
+        <label for="passwordInput">Senha</label>
+        <input type="password" id="passwordInput" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">Entrar</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './shared/supabaseClient.js';
+
+const form = document.getElementById('loginForm');
+const loginBtn = document.getElementById('loginBtn');
+const errorBox = document.getElementById('loginError');
+
+// já logado? pula direto pro painel
+const { data: { session } } = await supabase.auth.getSession();
+if(session){
+  window.location.href = 'dashboard.html';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorBox.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Entrando...';
+
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if(error){
+    errorBox.textContent = 'E-mail ou senha incorretos.';
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Entrar';
+    return;
+  }
+
+  window.location.href = 'dashboard.html';
+});
+</script>
+</body>
+</html>

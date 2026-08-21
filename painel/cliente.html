@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cliente | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+  <div class="header-title">
+    Painel de Ativações
+    <small id="tenantName">Carregando...</small>
+  </div>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-body">
+  <h2 id="formTitle">Novo cliente</h2>
+  <p class="panel-subtitle">Esses são os mesmos campos do painel de configuração do totem. Depois de salvar, use "Baixar configuração" na lista de clientes pra gerar o arquivo que é importado no totem.</p>
+
+  <div class="form-box">
+    <div class="settings-field">
+      <label for="brandNameInput">Nome do cliente</label>
+      <p class="field-hint">Aparece escrito ao lado da logo, no topo da roleta.</p>
+      <input type="text" id="brandNameInput" placeholder="Ex: Assaí">
+    </div>
+
+    <div class="settings-field">
+      <label>Logo</label>
+      <p class="field-hint">As cores da roleta mudam automaticamente pra cor predominante dessa imagem. Fica melhor com fundo transparente (PNG).</p>
+      <div class="settings-upload">
+        <div class="settings-preview" id="logoPreview">★</div>
+        <input type="file" id="logoInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="settings-field" id="hubZoomField" style="display:none;">
+      <label>Zoom da logo no círculo central</label>
+      <p class="field-hint">O círculo do meio corta a logo pra preencher tudo. Se cortar do jeito errado, ajuste o zoom aqui.</p>
+      <div class="hub-zoom-row">
+        <div class="hub-zoom-preview" id="hubZoomPreview"></div>
+        <input type="range" id="hubZoomInput" min="100" max="260" value="100" step="1">
+      </div>
+    </div>
+
+    <div class="settings-field">
+      <label>Imagem de fundo (opcional)</label>
+      <p class="field-hint">Se enviar uma foto aqui, ela cobre a tela inteira atrás da roleta. Se deixar em branco, o fundo usa a cor da marca com a logo pequena repetida por trás.</p>
+      <div class="settings-upload">
+        <div class="settings-preview" id="bgPreview">🖼</div>
+        <input type="file" id="bgInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="settings-field">
+      <label>Prêmios da roleta</label>
+      <p class="field-hint">Mínimo 2, máximo 10 gomos.</p>
+      <div id="prizesEditor" class="prizes-editor"></div>
+      <button type="button" class="prize-add-btn" id="prizeAddBtn">+ Adicionar prêmio</button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-primary" id="saveBtn">Salvar cliente</button>
+      <button type="button" class="btn-secondary" id="cancelBtn">Voltar sem salvar</button>
+      <button type="button" class="btn-danger" id="deleteBtn" style="display:none;">Excluir este cliente</button>
+    </div>
+    <div class="form-status" id="formStatus"></div>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './shared/supabaseClient.js';
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+import {
+  fileToResizedBlob, extractDominantColor, paletteFromColor,
+  addPrizeRow, renderPrizesEditor, readPrizesFromEditor
+} from './shared/brandEditor.js';
+import { buildTotemExportPayload } from './shared/exportFormat.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+document.getElementById('cancelBtn').addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+
+document.getElementById('prizeAddBtn').addEventListener('click', () => addPrizeRow('Prêmio', 'win'));
+
+const DEFAULT_PRIZES = [
+  { label:'Prêmio 1',        type:'win' },
+  { label:'Tente Novamente', type:'lose' },
+  { label:'Prêmio 2',        type:'win' },
+  { label:'Prêmio 3',        type:'win' },
+  { label:'Prêmio 4',        type:'win' },
+  { label:'Prêmio 5',        type:'win' },
+];
+
+const params = new URLSearchParams(window.location.search);
+let existingId = params.get('id');
+let existingLogoUrl = null, existingBgUrl = null, existingPalette = null;
+let pendingLogo = null, pendingBg = null;
+
+const status = document.getElementById('formStatus');
+function setStatus(text, kind){
+  status.textContent = text;
+  status.className = 'form-status' + (kind ? ' ' + kind : '');
+}
+
+function setHubZoomPreview(src, zoomPercent){
+  const field = document.getElementById('hubZoomField');
+  const preview = document.getElementById('hubZoomPreview');
+  const slider = document.getElementById('hubZoomInput');
+  if(!src){ field.style.display = 'none'; preview.innerHTML = ''; return; }
+  field.style.display = '';
+  slider.value = zoomPercent;
+  preview.innerHTML = `<img src="${src}" style="transform:scale(${zoomPercent / 100});">`;
+}
+document.getElementById('hubZoomInput').addEventListener('input', (e) => {
+  const img = document.querySelector('#hubZoomPreview img');
+  if(img) img.style.transform = `scale(${e.target.value / 100})`;
+});
+
+if(existingId){
+  const { data: row, error } = await supabase
+    .from('brand_clients')
+    .select('*')
+    .eq('id', existingId)
+    .eq('tenant_id', tenant.tenantId)
+    .single();
+
+  if(error || !row){
+    setStatus('Cliente não encontrado.', 'error');
+    renderPrizesEditor(DEFAULT_PRIZES);
+  } else {
+    document.getElementById('formTitle').textContent = 'Editar cliente';
+    document.getElementById('deleteBtn').style.display = '';
+    document.getElementById('brandNameInput').value = row.title || '';
+    existingLogoUrl = row.logo_url;
+    existingBgUrl = row.bg_url;
+    existingPalette = row.palette;
+    if(row.logo_url){
+      document.getElementById('logoPreview').innerHTML = `<img src="${row.logo_url}">`;
+      setHubZoomPreview(row.logo_url, Math.round((row.hub_zoom || 1) * 100));
+    }
+    if(row.bg_url){
+      document.getElementById('bgPreview').innerHTML = `<img src="${row.bg_url}">`;
+    }
+    renderPrizesEditor(row.prizes && row.prizes.length ? row.prizes : DEFAULT_PRIZES);
+  }
+} else {
+  renderPrizesEditor(DEFAULT_PRIZES);
+}
+
+document.getElementById('logoInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const result = await fileToResizedBlob(file, 400, true);
+  pendingLogo = result;
+  document.getElementById('logoPreview').innerHTML = `<img src="${result.previewDataUrl}">`;
+  setHubZoomPreview(result.previewDataUrl, 100);
+});
+
+document.getElementById('bgInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const result = await fileToResizedBlob(file, 1600, false);
+  pendingBg = result;
+  document.getElementById('bgPreview').innerHTML = `<img src="${result.previewDataUrl}">`;
+});
+
+const saveBtn = document.getElementById('saveBtn');
+saveBtn.addEventListener('click', async () => {
+  setStatus('', '');
+  const title = document.getElementById('brandNameInput').value.trim();
+  if(!title){ setStatus('⚠️ Digite o nome do cliente.', 'error'); return; }
+
+  saveBtn.disabled = true;
+  const originalText = saveBtn.textContent;
+
+  try{
+    const clientId = existingId || crypto.randomUUID();
+
+    let logoUrl = existingLogoUrl;
+    let palette = existingPalette;
+    if(pendingLogo){
+      saveBtn.textContent = 'Enviando logo...';
+      const path = `${tenant.tenantId}/${clientId}/logo-${Date.now()}.${pendingLogo.ext}`;
+      const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, pendingLogo.blob, { upsert: true, contentType: pendingLogo.blob.type });
+      if(upErr) throw upErr;
+      logoUrl = supabase.storage.from('brand-assets').getPublicUrl(path).data.publicUrl;
+
+      saveBtn.textContent = 'Analisando cores...';
+      const dominant = await extractDominantColor(pendingLogo.previewDataUrl);
+      palette = dominant ? paletteFromColor(dominant) : null;
+    }
+
+    let bgUrl = existingBgUrl;
+    if(pendingBg){
+      saveBtn.textContent = 'Enviando fundo...';
+      const path = `${tenant.tenantId}/${clientId}/bg-${Date.now()}.${pendingBg.ext}`;
+      const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, pendingBg.blob, { upsert: true, contentType: pendingBg.blob.type });
+      if(upErr) throw upErr;
+      bgUrl = supabase.storage.from('brand-assets').getPublicUrl(path).data.publicUrl;
+    }
+
+    const hubZoom = Number(document.getElementById('hubZoomInput').value) / 100;
+    const prizes = readPrizesFromEditor();
+
+    saveBtn.textContent = 'Salvando dados...';
+    const { data: savedRow, error: saveErr } = await supabase
+      .from('brand_clients')
+      .upsert({
+        id: clientId,
+        tenant_id: tenant.tenantId,
+        title,
+        logo_url: logoUrl,
+        bg_url: bgUrl,
+        palette,
+        hub_zoom: hubZoom,
+        prizes
+      })
+      .select()
+      .single();
+    if(saveErr) throw saveErr;
+
+    saveBtn.textContent = 'Gerando backup...';
+    try{
+      const backupPayload = await buildTotemExportPayload(savedRow);
+      const backupPath = `${tenant.tenantId}/${savedRow.id}/${Date.now()}.json`;
+      const backupBlob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+      const { error: backupUpErr } = await supabase.storage.from('backups').upload(backupPath, backupBlob, { upsert: true, contentType: 'application/json' });
+      if(!backupUpErr){
+        await supabase.from('brand_backups').insert({
+          tenant_id: tenant.tenantId,
+          brand_client_id: savedRow.id,
+          client_title: savedRow.title,
+          storage_path: backupPath
+        });
+      }
+    } catch(backupErr){
+      console.error('Falha ao gravar cópia de backup (cliente já foi salvo normalmente):', backupErr);
+    }
+
+    existingId = savedRow.id;
+    existingLogoUrl = savedRow.logo_url;
+    existingBgUrl = savedRow.bg_url;
+    existingPalette = savedRow.palette;
+    pendingLogo = null;
+    pendingBg = null;
+    document.getElementById('deleteBtn').style.display = '';
+    document.getElementById('formTitle').textContent = 'Editar cliente';
+    window.history.replaceState(null, '', `cliente.html?id=${savedRow.id}`);
+
+    setStatus('✅ Salvo com sucesso!', 'ok');
+  } catch(err){
+    console.error(err);
+    setStatus('⚠️ ' + (err.message || 'Não foi possível salvar.'), 'error');
+  }
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = originalText;
+});
+
+document.getElementById('deleteBtn').addEventListener('click', async () => {
+  if(!existingId) return;
+  if(!confirm('Excluir este cliente? As cópias de backup continuam guardadas, mas a ficha ativa some da lista.')) return;
+  const { error } = await supabase.from('brand_clients').delete().eq('id', existingId).eq('tenant_id', tenant.tenantId);
+  if(error){ setStatus('⚠️ ' + error.message, 'error'); return; }
+  window.location.href = 'dashboard.html';
+});
+</script>
+</body>
+</html>
