@@ -119,12 +119,46 @@ async function loadUsers(){
     const row = document.createElement('div');
     row.className = 'user-row';
     row.innerHTML = `
-      <div class="user-email"></div>
-      <div class="user-meta">Adicionado em ${formatDate(u.addedAt)}${u.isSelf ? ' · você' : ''}</div>
+      <div>
+        <div class="user-email"></div>
+        <div class="user-meta">Adicionado em ${formatDate(u.addedAt)}${u.isSelf ? ' · você' : ''}</div>
+      </div>
     `;
     row.querySelector('.user-email').textContent = u.email;
+
+    if(!u.isSelf && users.length > 1){
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn-danger';
+      delBtn.textContent = 'Excluir';
+      delBtn.addEventListener('click', () => deleteUser(u, delBtn));
+      row.appendChild(delBtn);
+    }
+
     list.appendChild(row);
   });
+}
+
+async function deleteUser(user, btn){
+  const confirmed = confirm(`Excluir o acesso de ${user.email}? Essa pessoa não vai mais conseguir entrar no painel.`);
+  if(!confirmed) return;
+
+  setStatus('', '');
+  btn.disabled = true;
+  btn.textContent = 'Excluindo...';
+
+  const { data, error } = await supabase.functions.invoke('delete-tenant-user', {
+    body: { userId: user.userId }
+  });
+
+  if(error || data?.error){
+    setStatus(data?.error || await extractFunctionError(error), 'error');
+    btn.disabled = false;
+    btn.textContent = 'Excluir';
+  } else {
+    setStatus('Usuário excluído.', 'ok');
+    await loadUsers();
+  }
 }
 
 await loadUsers();
