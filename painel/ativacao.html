@@ -152,6 +152,22 @@ saveBtn.addEventListener('click', async () => {
       .single();
     if(saveErr) throw saveErr;
 
+    // mantém o funil do cliente em sincronia com a agenda -- evita esquecer de
+    // atualizar os dois lugares separadamente. Cancelamento não mexe no status
+    // do cliente (não é nem avanço nem retrocesso no relacionamento).
+    const AUTO_STATUS_BY_ACTIVATION = {
+      agendada: 'ativacao_agendada',
+      concluida: 'ativacao_realizada'
+    };
+    const autoStatus = AUTO_STATUS_BY_ACTIVATION[savedRow.status];
+    if(brandClientId && autoStatus){
+      await supabase
+        .from('brand_clients')
+        .update({ relationship_status: autoStatus })
+        .eq('id', brandClientId)
+        .eq('tenant_id', tenant.tenantId);
+    }
+
     existingId = savedRow.id;
     document.getElementById('deleteBtn').style.display = '';
     document.getElementById('formTitle').textContent = 'Editar ativação';
