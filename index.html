@@ -6,9 +6,10 @@
 <title>Gira e Ganha | Roleta de Prêmios</title>
 <style>
   :root{
-    --red:#EA1D2C;
-    --red-dark:#B3121F;
-    --red-darker:#8A0E18;
+    --red:#5A5A5A;
+    --red-dark:#3D3D3D;
+    --red-darker:#242424;
+    --red-rgb:90,90,90;
     --yellow:#FFD700;
     --yellow-dark:#E6B800;
     --white:#FFFFFF;
@@ -28,6 +29,7 @@
 
   #totem{
     position:relative;
+    z-index:0;
     width:100vw;
     height:100vh;
     height:100dvh;
@@ -65,14 +67,15 @@
   /* ---------- Header ---------- */
   .top-header{
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:10px;
-    padding:1.2vh 0 0.6vh;
+    gap:1.2vh;
+    padding:2vh 0 1.4vh;
   }
   .header-logo{
-    width:34px; height:34px;
-    min-width:34px;
+    width:54px; height:54px;
+    min-width:54px;
     border-radius:50%;
     background:#fff;
     color:var(--red);
@@ -80,16 +83,50 @@
     align-items:center;
     justify-content:center;
     font-weight:900;
-    font-size:17px;
+    font-size:28px;
     box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+  .header-logo.custom{
+    width:auto; height:clamp(70px,11vh,120px); min-width:0;
+    max-width:min(74vw, 380px);
+    border-radius:16px;
+    background:rgba(255,255,255,0.96);
+    padding:10px 16px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+  }
+  .header-logo.custom img{
+    width:auto; height:100%;
+    max-width:100%;
+    object-fit:contain;
   }
   .header-title{
     color:#fff;
     font-weight:900;
     letter-spacing:2px;
-    font-size:clamp(15px,3.4vh,20px);
+    font-size:clamp(18px,4.2vh,26px);
     text-transform:uppercase;
     text-shadow:0 2px 6px rgba(0,0,0,0.3);
+    text-align:center;
+  }
+
+  .setup-hint{
+    display:none;
+    align-self:center;
+    max-width:80vw;
+    text-align:center;
+    background:rgba(0,0,0,0.3);
+    color:#fff;
+    font-size:clamp(12px,2vh,14px);
+    font-weight:700;
+    padding:1vh 4vw;
+    border-radius:100px;
+    margin:0.6vh 0 0.4vh;
+    animation:hintPulse 2s ease-in-out infinite;
+  }
+  .setup-hint.active{ display:block; }
+  @keyframes hintPulse{
+    0%,100%{ opacity:0.75; }
+    50%{ opacity:1; }
   }
 
   /* ---------- Wheel stage ---------- */
@@ -135,7 +172,7 @@
     position:absolute; inset:-0.5vh;
     border-radius:50%;
     background:linear-gradient(145deg, #ffffff, #e8e8e8);
-    box-shadow:0 10px 32px rgba(0,0,0,0.45), 0 0 0 3px rgba(234,29,44,0.12) inset;
+    box-shadow:0 10px 32px rgba(0,0,0,0.45), 0 0 0 3px rgba(var(--red-rgb), 0.12) inset;
   }
   .wheel-outer-ring::before{
     content:"";
@@ -185,6 +222,18 @@
     font-size:clamp(32px,7.5vw,54px);
     line-height:1;
   }
+  .hub-icon.custom{
+    width:100%; height:100%;
+    border-radius:50%;
+    background:#fff;
+    overflow:hidden;
+  }
+  .hub-icon.custom img{
+    width:100%; height:100%;
+    object-fit:contain;
+    object-position:center;
+    padding:6%;
+  }
   .hub.pulse{ animation:hubPulse 1.8s ease-in-out infinite; }
   @keyframes hubPulse{
     0%,100%{ box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 5px #ffffff, 0 0 0 7px var(--red-darker); }
@@ -226,7 +275,9 @@
   /* ---------- Modal ---------- */
   .modal-overlay{
     position:fixed; inset:0;
-    background:rgba(60,4,8,0.86);
+    background:
+      linear-gradient(rgba(8,2,2,0.78), rgba(8,2,2,0.78)),
+      rgba(var(--red-rgb), 0.4);
     backdrop-filter:blur(4px);
     display:none;
     align-items:center;
@@ -242,7 +293,7 @@
     pointer-events:none;
     opacity:0;
     background:
-      radial-gradient(circle at 50% 38%, rgba(255,255,255,0.55), rgba(255,215,0,0.35) 30%, rgba(234,29,44,0.18) 55%, transparent 72%);
+      radial-gradient(circle at 50% 38%, rgba(255,255,255,0.55), rgba(255,215,0,0.35) 30%, rgba(var(--red-rgb), 0.18) 55%, transparent 72%);
   }
   .flash-bg.active{
     animation:flashPulse 1.1s ease-in-out infinite;
@@ -371,18 +422,253 @@
     box-shadow:0 6px 0 #7a0c14, 0 10px 20px rgba(0,0,0,0.35);
   }
   .modal-btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #7a0c14, 0 6px 12px rgba(0,0,0,0.3); }
+
+  /* ---------- Fundo customizado (upload do cliente) ---------- */
+  .custom-bg{
+    position:absolute; inset:0;
+    z-index:-1;
+    background-size:cover;
+    background-position:center;
+    display:none;
+  }
+  .custom-bg.active{ display:block; }
+  /* leve véu escuro por cima da foto, pra roleta/textos continuarem legíveis */
+  .custom-bg.active::after{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.5));
+  }
+
+  /* ---------- Logo customizada (tamanho/enquadramento tratados em .header-logo.custom) ---------- */
+
+  /* ---------- Botão de engrenagem (abre configurações) ---------- */
+  .settings-btn{
+    position:absolute;
+    top:1.2vh; right:1.5vw;
+    z-index:10;
+    width:56px; height:56px;
+    min-width:44px; min-height:44px;
+    border-radius:50%;
+    border:none;
+    background:rgba(0,0,0,0.28);
+    color:#fff;
+    font-size:24px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    backdrop-filter:blur(2px);
+    touch-action:manipulation;
+  }
+  .settings-btn:active{ transform:scale(0.92); }
+
+  /* ---------- Painel de configurações ---------- */
+  .settings-overlay{
+    position:fixed; inset:0;
+    background:rgba(20,4,6,0.78);
+    backdrop-filter:blur(3px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:300;
+    padding:5vw;
+  }
+  .settings-overlay.active{ display:flex; }
+  .settings-box{
+    width:100%; max-width:640px;
+    max-height:94vh;
+    overflow-y:auto;
+    background:#fff;
+    border-radius:24px;
+    padding:4vh 5vw;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .settings-box h3{
+    color:var(--red);
+    font-weight:900;
+    text-transform:uppercase;
+    font-size:20px;
+    margin-bottom:2.4vh;
+    text-align:center;
+  }
+  .settings-field{ margin-bottom:2.2vh; }
+  .settings-field label{
+    display:block;
+    font-weight:800;
+    font-size:13px;
+    color:#333;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:0.4vh;
+  }
+  .settings-intro{
+    font-size:13px;
+    color:#777;
+    line-height:1.5;
+    text-align:center;
+    margin-bottom:2.6vh;
+  }
+  .field-hint{
+    font-size:12px;
+    color:#888;
+    line-height:1.45;
+    font-weight:500;
+    margin-bottom:0.9vh;
+  }
+  .settings-field input[type="text"]{
+    width:100%;
+    padding:1.3vh 1vh;
+    border:2px solid #eee;
+    border-radius:10px;
+    font-size:15px;
+    font-family:inherit;
+  }
+  .settings-upload{
+    display:flex; align-items:center; gap:12px;
+  }
+  .settings-preview{
+    width:56px; height:56px;
+    border-radius:12px;
+    background:#f4f4f4;
+    border:2px solid #eee;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+    font-size:22px;
+    color:#bbb;
+  }
+  .settings-preview img{ width:100%; height:100%; object-fit:cover; }
+  .hub-zoom-row{
+    display:flex; align-items:center; gap:14px;
+  }
+  .hub-zoom-preview{
+    width:64px; height:64px;
+    border-radius:50%;
+    background:#fff;
+    border:2px solid #eee;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .hub-zoom-preview img{
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center;
+  }
+  .hub-zoom-row input[type="range"]{ flex:1; }
+  .settings-upload input[type="file"]{
+    flex:1;
+    font-size:12px;
+  }
+  .prizes-editor{
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .prize-row{
+    display:flex; align-items:center; gap:10px;
+  }
+  .prize-row span{
+    font-size:11px; font-weight:800; color:#aaa;
+    width:16px; flex-shrink:0;
+  }
+  .prize-row input[type="text"]{
+    flex:1;
+    min-width:0;
+    padding:1vh 0.8vh;
+    border:2px solid #eee;
+    border-radius:8px;
+    font-size:13px;
+    font-family:inherit;
+  }
+  .prize-row select{
+    flex-shrink:0;
+    padding:0.9vh 0.4vh;
+    border:2px solid #eee;
+    border-radius:8px;
+    font-size:11px;
+    font-family:inherit;
+    color:#555;
+  }
+  .prize-remove-btn{
+    flex-shrink:0;
+    width:28px; height:28px;
+    border-radius:50%;
+    border:none;
+    background:#fdeaea;
+    color:#c0392b;
+    font-size:14px;
+    font-weight:900;
+    cursor:pointer;
+    line-height:1;
+  }
+  .prize-remove-btn:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+  }
+  .prize-add-btn{
+    margin-top:10px;
+    width:100%;
+    border:2px dashed #ccc;
+    background:transparent;
+    color:#666;
+    font-weight:800;
+    font-size:13px;
+    padding:1.2vh 0;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .prize-add-btn:active{ background:#f6f6f6; }
+  .prize-add-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .settings-actions{
+    display:flex; flex-direction:column; gap:10px;
+    margin-top:1vh;
+  }
+  .settings-btn-save{
+    border:none; outline:none; cursor:pointer;
+    font-family:inherit; font-weight:900;
+    letter-spacing:1px; text-transform:uppercase;
+    color:#fff;
+    background:linear-gradient(160deg, var(--red), var(--red-darker));
+    padding:1.7vh 0;
+    font-size:15px;
+    border-radius:100px;
+    box-shadow:0 6px 0 #7a0c14;
+  }
+  .settings-btn-save:active{ transform:translateY(3px); box-shadow:0 3px 0 #7a0c14; }
+  .settings-btn-reset{
+    border:none; outline:none; cursor:pointer;
+    font-family:inherit; font-weight:800;
+    color:#999;
+    background:transparent;
+    padding:1vh 0;
+    font-size:13px;
+    text-decoration:underline;
+  }
+  .settings-btn-close{
+    position:absolute;
+    top:1.6vh; right:1.6vh;
+    width:44px; height:44px;
+    border-radius:50%;
+    border:none;
+    background:#f0f0f0;
+    color:#888;
+    font-size:20px;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
 </style>
 </head>
 <body>
 
 <div id="totem">
+  <div class="custom-bg" id="customBg"></div>
   <div class="watermark"></div>
+
+  <button class="settings-btn" id="settingsBtn" title="Configurar marca">⚙</button>
 
   <div class="content">
     <div class="top-header">
-      <div class="header-logo">★</div>
-      <div class="header-title">Benefícios</div>
+      <div class="header-logo" id="headerLogo">★</div>
+      <div class="header-title" id="headerTitle">Benefícios</div>
     </div>
+
+    <div class="setup-hint" id="setupHint">👆 Toque na engrenagem no canto pra configurar a marca deste totem</div>
 
     <div class="wheel-stage">
       <div class="wheel-wrap">
@@ -391,7 +677,7 @@
         <canvas id="wheelCanvas" width="1000" height="1000"></canvas>
         <div class="wheel-gloss"></div>
         <div class="hub pulse" id="hubBtn">
-          <div class="hub-icon">🙂</div>
+          <div class="hub-icon" id="hubIcon">🙂</div>
         </div>
       </div>
     </div>
@@ -415,23 +701,95 @@
   </div>
 </div>
 
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-box">
+    <button class="settings-btn-close" id="settingsCloseBtn">✕</button>
+    <h3>Configurar Marca</h3>
+    <p class="settings-intro">Use esta tela pra trocar a marca do totem antes de cada ativação. Tudo é salvo neste aparelho e aplicado na hora, sem precisar de internet.</p>
+
+    <div class="settings-field">
+      <label for="brandNameInput">Nome da marca</label>
+      <p class="field-hint">Aparece escrito ao lado da logo, no topo da tela.</p>
+      <input type="text" id="brandNameInput" placeholder="Ex: Benefícios">
+    </div>
+
+    <div class="settings-field">
+      <label>Logo</label>
+      <p class="field-hint">Aparece no topo e no círculo do meio da roleta. As cores da roleta (gomos, botão, confete) mudam automaticamente para a cor predominante dessa imagem. Fica melhor com uma logo de fundo transparente (PNG).</p>
+      <div class="settings-upload">
+        <div class="settings-preview" id="logoPreview">★</div>
+        <input type="file" id="logoInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="settings-field" id="hubZoomField" style="display:none;">
+      <label>Zoom da logo no círculo central</label>
+      <p class="field-hint">O círculo do meio corta a logo pra preencher tudo. Se cortar do jeito errado, ajuste o zoom aqui.</p>
+      <div class="hub-zoom-row">
+        <div class="hub-zoom-preview" id="hubZoomPreview"></div>
+        <input type="range" id="hubZoomInput" min="100" max="260" value="100" step="1">
+      </div>
+    </div>
+
+    <div class="settings-field">
+      <label>Imagem de fundo (opcional)</label>
+      <p class="field-hint">Se enviar uma foto aqui, ela cobre a tela inteira atrás da roleta. Se deixar em branco, o fundo usa a cor da marca com a logo pequena repetida por trás, bem discreta.</p>
+      <div class="settings-upload">
+        <div class="settings-preview" id="bgPreview">🖼</div>
+        <input type="file" id="bgInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="settings-field">
+      <label>Prêmios da roleta</label>
+      <p class="field-hint">Edite o texto de cada gomo e marque se ele é um prêmio ("Ganha") ou não ("Não ganha", tipo "Tente Novamente"). Use os botões pra adicionar ou remover gomos (mínimo 2, máximo 10).</p>
+      <div id="prizesEditor" class="prizes-editor"></div>
+      <button type="button" class="prize-add-btn" id="prizeAddBtn">+ Adicionar prêmio</button>
+    </div>
+
+    <div class="settings-actions">
+      <button class="settings-btn-save" id="settingsSaveBtn">Salvar e aplicar</button>
+      <button class="settings-btn-reset" id="settingsResetBtn">Restaurar padrão</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
-   CONFIGURAÇÃO DOS PRÊMIOS (8 GOMOS)
+   CONFIGURAÇÃO DOS PRÊMIOS (quantidade de gomos configurável)
 ========================================================= */
-const PRIZES = [
-  { label:'R$ 5,00',          type:'win' },
-  { label:'Tente Novamente',  type:'lose' },
-  { label:'R$ 10,00',         type:'win' },
-  { label:'Cupom Especial',   type:'win' },
-  { label:'R$ 15,00',         type:'win' },
-  { label:'Brinde Exclusivo', type:'win' },
-  { label:'R$ 30,00',         type:'win' },
-  { label:'Vale Lanche',      type:'win' },
+const DEFAULT_PRIZES = [
+  { label:'Prêmio 1',        type:'win' },
+  { label:'Tente Novamente', type:'lose' },
+  { label:'Prêmio 2',        type:'win' },
+  { label:'Prêmio 3',        type:'win' },
+  { label:'Prêmio 4',        type:'win' },
+  { label:'Prêmio 5',        type:'win' },
 ];
+const MIN_PRIZES = 2;
+const MAX_PRIZES = 10;
+const PRIZES_KEY = 'giraEGanha_prizes';
+function loadPrizes(){
+  try{
+    const raw = localStorage.getItem(PRIZES_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return (Array.isArray(parsed) && parsed.length >= MIN_PRIZES && parsed.length <= MAX_PRIZES) ? parsed : null;
+  } catch(e){
+    return null;
+  }
+}
+let PRIZES = loadPrizes() || DEFAULT_PRIZES;
 
-const SEGMENT_COLORS = ['#B3121F', '#FFFFFF']; // alterna vermelho escuro / branco
-const TEXT_COLORS    = ['#FFFFFF', '#B3121F']; // texto contrastante
+// troca a lista de prêmios e recalcula a geometria da roleta (quantidade de gomos pode mudar)
+function applyPrizes(prizes){
+  PRIZES = prizes;
+  N = PRIZES.length;
+  SLICE = (Math.PI * 2) / N;
+  drawWheel(currentRotation);
+}
+
+let SEGMENT_COLORS = ['#3D3D3D', '#FFFFFF']; // alterna cor escura / branco (atualizado por applyPalette)
+let TEXT_COLORS    = ['#FFFFFF', '#3D3D3D']; // texto contrastante
 
 /* =========================================================
    CANVAS DA ROLETA
@@ -440,8 +798,8 @@ const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
 const CENTER = canvas.width / 2;
 const RADIUS = CENTER - 6;
-const N = PRIZES.length;
-const SLICE = (Math.PI * 2) / N;
+let N = PRIZES.length;
+let SLICE = (Math.PI * 2) / N;
 
 let currentRotation = 0;
 let isSpinning = false;
@@ -524,20 +882,9 @@ function easeOutCubic(t){
   return 1 - Math.pow(1 - t, 3);
 }
 
-function primeSpeech(){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const unlock = new SpeechSynthesisUtterance(' ');
-  unlock.volume = 0;
-  unlock.rate = 10;
-  window.speechSynthesis.speak(unlock);
-}
-
 function spinWheel(){
   if(isSpinning) return;
   isSpinning = true;
-  ensureAudioContext();
-  primeSpeech();
   setControlsEnabled(false);
 
   const winnerIndex = Math.floor(Math.random() * N);
@@ -610,7 +957,6 @@ function onSpinResult(index){
     title.textContent = 'QUASE LÁ!';
     sub.textContent = 'Não foi dessa vez. Toque no botão abaixo para girar novamente!';
     btn.textContent = 'GIRAR NOVAMENTE';
-    setTimeout(() => speak('Não foi dessa vez! Tente novamente!'), 150);
   } else {
     box.classList.remove('retry');
     badge.textContent = '🏆';
@@ -619,8 +965,6 @@ function onSpinResult(index){
     sub.textContent = 'Mostre esta tela para o promotor do estande e retire seu brinde!';
     btn.textContent = 'JOGAR NOVAMENTE';
     launchCelebration();
-    playVictorySound();
-    setTimeout(() => speak(`Parabéns! Você ganhou ${toSpokenText(prize.label)}!`), 400);
   }
 
   overlay.classList.add('active');
@@ -629,53 +973,7 @@ function onSpinResult(index){
 document.getElementById('modalBtn').addEventListener('click', () => {
   document.getElementById('modalOverlay').classList.remove('active');
   stopCelebration();
-  if('speechSynthesis' in window) window.speechSynthesis.cancel();
 });
-
-/* =========================================================
-   NARRAÇÃO POR VOZ (WEB SPEECH API)
-========================================================= */
-let ptVoice = null;
-
-const FEMALE_VOICE_HINTS = ['maria','francisca','luciana','camila','helena','fernanda','vitória','vitoria','female','mulher','google português','google portugues'];
-
-function loadPtVoice(){
-  if(!('speechSynthesis' in window)) return;
-  const voices = window.speechSynthesis.getVoices();
-  const ptVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('pt'));
-  const isFemale = v => FEMALE_VOICE_HINTS.some(hint => v.name.toLowerCase().includes(hint));
-  const isNatural = v => v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('online');
-
-  ptVoice = ptVoices.find(v => isFemale(v) && isNatural(v))
-    || ptVoices.find(v => isFemale(v))
-    || ptVoices.find(v => v.lang === 'pt-BR')
-    || ptVoices[0]
-    || null;
-}
-if('speechSynthesis' in window){
-  loadPtVoice();
-  window.speechSynthesis.onvoiceschanged = loadPtVoice;
-}
-
-function toSpokenText(label){
-  const match = label.match(/R\$\s*([\d.]+),?\d*/);
-  if(match){
-    const amount = match[1].replace(/\./g, '');
-    return `${amount} reais`;
-  }
-  return label;
-}
-
-function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'pt-BR';
-  utter.rate = 0.88;
-  utter.pitch = 0.88;
-  utter.volume = 1;
-  if(ptVoice) utter.voice = ptVoice;
-  window.speechSynthesis.speak(utter);
-}
 
 /* =========================================================
    CELEBRAÇÃO: CONFETE + FOGOS DE ARTIFÍCIO (CANVAS)
@@ -694,7 +992,7 @@ function resizeConfettiCanvas(){
 window.addEventListener('resize', resizeConfettiCanvas);
 resizeConfettiCanvas();
 
-const CONFETTI_COLORS = ['#FFD700', '#EA1D2C', '#FFFFFF', '#B3121F', '#FFE98A'];
+let CONFETTI_COLORS = ['#FFD700', '#5A5A5A', '#FFFFFF', '#3D3D3D', '#FFE98A'];
 const CELEBRATION_DURATION = 5200;
 
 function spawnFireworkBurst(){
@@ -830,48 +1128,382 @@ function launchSparkles(){
   }
 }
 
+
 /* =========================================================
-   SOM DE VITÓRIA (WEB AUDIO API — SEM ARQUIVOS EXTERNOS)
+   MARCA CUSTOMIZÁVEL (upload de logo + fundo pelo cliente)
 ========================================================= */
-let audioCtx = null;
+const BRAND_KEY = 'giraEGanha_brand';
+const DEFAULT_LOGO_HTML = '🎡';
+const DEFAULT_HUB_HTML = '🎁';
+const DEFAULT_TITLE = 'Roleta de Prêmios';
 
-function ensureAudioContext(){
-  if(!audioCtx){
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if(AudioCtor) audioCtx = new AudioCtor();
+function loadBrand(){
+  try{
+    const raw = localStorage.getItem(BRAND_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){
+    return null;
   }
-  if(audioCtx && audioCtx.state === 'suspended'){
-    audioCtx.resume();
+}
+
+function saveBrand(brand){
+  localStorage.setItem(BRAND_KEY, JSON.stringify(brand));
+}
+
+function clearBrand(){
+  localStorage.removeItem(BRAND_KEY);
+}
+
+// redimensiona/comprime a imagem no navegador antes de guardar, pra não estourar o espaço do localStorage
+function fileToDataUrl(file, maxDim, keepTransparency){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+          else { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const cctx = canvas.getContext('2d');
+        cctx.drawImage(img, 0, 0, width, height);
+        resolve(keepTransparency ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---- extração automática da cor predominante da logo ---- */
+function rgbToHsl(r, g, b){
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max + min) / 2;
+  if(max === min){ h = s = 0; }
+  else{
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch(max){
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4;
+    }
+    h /= 6;
   }
+  return [h, s, l];
+}
+function hslToRgb(h, s, l){
+  let r, g, b;
+  if(s === 0){ r = g = b = l; }
+  else{
+    const hue2rgb = (p, q, t) => {
+      if(t < 0) t += 1;
+      if(t > 1) t -= 1;
+      if(t < 1/6) return p + (q - p) * 6 * t;
+      if(t < 1/2) return q;
+      if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+}
+function rgbToHex(rgb){
+  return '#' + rgb.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('');
+}
+function adjustLightness(rgb, factor){
+  const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+  return hslToRgb(h, s, Math.max(0, Math.min(1, l * factor)));
 }
 
-function playTone(freq, start, duration, type, peakGain){
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  gain.gain.setValueAtTime(0, start);
-  gain.gain.linearRampToValueAtTime(peakGain, start + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-  osc.connect(gain).connect(audioCtx.destination);
-  osc.start(start);
-  osc.stop(start + duration + 0.05);
-}
+// varre a logo e acha a cor viva mais frequente (ignora branco/preto/cinza de fundo)
+function extractDominantColor(dataUrl){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 50;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const cctx = canvas.getContext('2d');
+      cctx.drawImage(img, 0, 0, size, size);
+      let data;
+      try{ data = cctx.getImageData(0, 0, size, size).data; }
+      catch(e){ resolve(null); return; }
 
-function playVictorySound(){
-  if(!audioCtx) return;
-  const now = audioCtx.currentTime;
-  const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
-
-  notes.forEach((freq, i) => {
-    playTone(freq, now + i * 0.12, 0.35, 'triangle', 0.3);
+      const counts = {};
+      for(let i = 0; i < data.length; i += 4){
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if(a < 200) continue;
+        const max = Math.max(r,g,b), min = Math.min(r,g,b);
+        const sat = max === 0 ? 0 : (max - min) / max;
+        const lightness = (max + min) / 2 / 255;
+        if(sat < 0.28 || lightness > 0.9 || lightness < 0.1) continue;
+        const key = [Math.round(r/12)*12, Math.round(g/12)*12, Math.round(b/12)*12].join(',');
+        counts[key] = (counts[key] || 0) + 1;
+      }
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      if(sorted.length === 0){ resolve(null); return; }
+      resolve(sorted[0][0].split(',').map(Number));
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
   });
-
-  const chordStart = now + notes.length * 0.12 + 0.05;
-  [1046.5, 1318.5, 1568.0].forEach(freq => {
-    playTone(freq, chordStart, 0.9, 'sine', 0.15);
-  });
 }
+
+function paletteFromColor(rgb){
+  return {
+    primary: rgbToHex(rgb),
+    primaryDark: rgbToHex(adjustLightness(rgb, 0.72)),
+    primaryDarker: rgbToHex(adjustLightness(rgb, 0.5)),
+    primaryRgb: rgb.join(',')
+  };
+}
+
+const DEFAULT_PALETTE = { primary:'#5A5A5A', primaryDark:'#3D3D3D', primaryDarker:'#242424', primaryRgb:'90,90,90' };
+
+function applyPalette(palette){
+  const p = palette || DEFAULT_PALETTE;
+  const root = document.documentElement.style;
+  root.setProperty('--red', p.primary);
+  root.setProperty('--red-dark', p.primaryDark);
+  root.setProperty('--red-darker', p.primaryDarker);
+  root.setProperty('--red-rgb', p.primaryRgb || DEFAULT_PALETTE.primaryRgb);
+  SEGMENT_COLORS = [p.primaryDark, '#FFFFFF'];
+  TEXT_COLORS = ['#FFFFFF', p.primaryDark];
+  CONFETTI_COLORS = ['#FFD700', p.primary, '#FFFFFF', p.primaryDark, '#FFE98A'];
+  drawWheel(currentRotation);
+}
+
+function applyBrand(brand){
+  const customBg = document.getElementById('customBg');
+  const headerLogo = document.getElementById('headerLogo');
+  const hubIcon = document.getElementById('hubIcon');
+  const headerTitle = document.getElementById('headerTitle');
+  const watermark = document.querySelector('.watermark');
+
+  const totem = document.getElementById('totem');
+
+  if(brand && brand.bg){
+    // foto de fundo enviada: usa ela grande, cobrindo a tela
+    customBg.style.backgroundImage = `url('${brand.bg}')`;
+    customBg.classList.add('active');
+    watermark.style.display = 'none';
+    totem.style.background = '';
+  } else {
+    customBg.classList.remove('active');
+    customBg.style.backgroundImage = '';
+    watermark.style.display = '';
+
+    if(brand && brand.logo){
+      // sem foto de fundo: fundo branco com a logo pequena repetida, tipo embalagem de marca
+      // (largura fixa + altura automática, pra não esticar logos largas/retangulares)
+      totem.style.background = '#ffffff';
+      watermark.style.backgroundImage = `url('${brand.logo}')`;
+      watermark.style.backgroundSize = '150px auto';
+      watermark.style.opacity = '0.18';
+    } else {
+      // sem marca nenhuma: volta ao padrão de ícones genéricos
+      totem.style.background = '';
+      watermark.style.backgroundImage = '';
+      watermark.style.backgroundSize = '';
+      watermark.style.opacity = '';
+    }
+  }
+
+  if(brand && brand.logo){
+    headerLogo.innerHTML = `<img src="${brand.logo}" alt="Logo">`;
+    headerLogo.classList.add('custom');
+    const hubZoom = brand.hubZoom || 1;
+    hubIcon.innerHTML = `<img src="${brand.logo}" alt="Logo" style="transform:scale(${hubZoom});">`;
+    hubIcon.classList.add('custom');
+  } else {
+    headerLogo.innerHTML = DEFAULT_LOGO_HTML;
+    headerLogo.classList.remove('custom');
+    hubIcon.innerHTML = DEFAULT_HUB_HTML;
+    hubIcon.classList.remove('custom');
+  }
+
+  headerTitle.textContent = (brand && brand.title) ? brand.title : DEFAULT_TITLE;
+
+  document.getElementById('setupHint').classList.toggle('active', !(brand && (brand.logo || brand.bg || brand.title)));
+
+  applyPalette(brand && brand.palette);
+}
+
+function addPrizeRow(label, type){
+  const editor = document.getElementById('prizesEditor');
+  if(editor.children.length >= MAX_PRIZES) return;
+  const row = document.createElement('div');
+  row.className = 'prize-row';
+  row.innerHTML = `
+    <span class="prize-row-num"></span>
+    <input type="text" class="prize-label-input" value="${(label || '').replace(/"/g,'&quot;')}">
+    <select class="prize-type-input">
+      <option value="win"${type !== 'lose' ? ' selected' : ''}>Ganha</option>
+      <option value="lose"${type === 'lose' ? ' selected' : ''}>Não ganha</option>
+    </select>
+    <button type="button" class="prize-remove-btn" title="Remover prêmio">✕</button>
+  `;
+  row.querySelector('.prize-remove-btn').addEventListener('click', () => {
+    row.remove();
+    updatePrizeRowState();
+  });
+  editor.appendChild(row);
+  updatePrizeRowState();
+}
+
+function updatePrizeRowState(){
+  const rows = document.querySelectorAll('#prizesEditor .prize-row');
+  rows.forEach((row, i) => {
+    row.querySelector('.prize-row-num').textContent = i + 1;
+    row.querySelector('.prize-remove-btn').disabled = rows.length <= MIN_PRIZES;
+  });
+  const addBtn = document.getElementById('prizeAddBtn');
+  if(addBtn) addBtn.disabled = rows.length >= MAX_PRIZES;
+}
+
+function renderPrizesEditor(prizes){
+  const editor = document.getElementById('prizesEditor');
+  editor.innerHTML = '';
+  prizes.forEach(prize => addPrizeRow(prize.label, prize.type));
+  updatePrizeRowState();
+}
+
+function readPrizesFromEditor(){
+  const rows = document.querySelectorAll('#prizesEditor .prize-row');
+  return Array.from(rows).map(row => ({
+    label: row.querySelector('.prize-label-input').value.trim() || 'Prêmio',
+    type: row.querySelector('.prize-type-input').value
+  }));
+}
+
+function setHubZoomPreview(src, zoomPercent){
+  const field = document.getElementById('hubZoomField');
+  const preview = document.getElementById('hubZoomPreview');
+  const slider = document.getElementById('hubZoomInput');
+  if(!src){
+    field.style.display = 'none';
+    preview.innerHTML = '';
+    return;
+  }
+  field.style.display = '';
+  slider.value = zoomPercent;
+  preview.innerHTML = `<img src="${src}" style="transform:scale(${zoomPercent / 100});">`;
+}
+
+function openSettingsPanel(){
+  const brand = loadBrand();
+  document.getElementById('brandNameInput').value = (brand && brand.title) ? brand.title : '';
+
+  const logoPreview = document.getElementById('logoPreview');
+  logoPreview.innerHTML = (brand && brand.logo) ? `<img src="${brand.logo}">` : '★';
+
+  const bgPreview = document.getElementById('bgPreview');
+  bgPreview.innerHTML = (brand && brand.bg) ? `<img src="${brand.bg}">` : '🖼';
+
+  document.getElementById('logoInput').value = '';
+  document.getElementById('bgInput').value = '';
+  delete document.getElementById('logoInput').dataset.pending;
+  delete document.getElementById('bgInput').dataset.pending;
+
+  setHubZoomPreview(brand && brand.logo, (brand && brand.hubZoom) ? Math.round(brand.hubZoom * 100) : 100);
+
+  renderPrizesEditor(PRIZES);
+
+  document.getElementById('settingsOverlay').classList.add('active');
+}
+
+function closeSettingsPanel(){
+  document.getElementById('settingsOverlay').classList.remove('active');
+}
+
+document.getElementById('settingsBtn').addEventListener('click', openSettingsPanel);
+document.getElementById('settingsCloseBtn').addEventListener('click', closeSettingsPanel);
+document.getElementById('prizeAddBtn').addEventListener('click', () => addPrizeRow('Prêmio', 'win'));
+
+document.getElementById('logoInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const dataUrl = await fileToDataUrl(file, 400, true);
+  document.getElementById('logoPreview').innerHTML = `<img src="${dataUrl}">`;
+  document.getElementById('logoInput').dataset.pending = dataUrl;
+  setHubZoomPreview(dataUrl, 100);
+});
+
+document.getElementById('hubZoomInput').addEventListener('input', (e) => {
+  const img = document.querySelector('#hubZoomPreview img');
+  if(img) img.style.transform = `scale(${e.target.value / 100})`;
+});
+
+document.getElementById('bgInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const dataUrl = await fileToDataUrl(file, 1600, false);
+  document.getElementById('bgPreview').innerHTML = `<img src="${dataUrl}">`;
+  document.getElementById('bgInput').dataset.pending = dataUrl;
+});
+
+document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+  const saveBtn = document.getElementById('settingsSaveBtn');
+  const existing = loadBrand() || {};
+  const titleInput = document.getElementById('brandNameInput').value.trim();
+  const pendingLogo = document.getElementById('logoInput').dataset.pending;
+  const pendingBg = document.getElementById('bgInput').dataset.pending;
+
+  const logo = pendingLogo || existing.logo || null;
+  let palette = existing.palette || null;
+
+  // se uma logo nova foi enviada, recalcula a paleta a partir dela
+  if(pendingLogo){
+    saveBtn.textContent = 'Analisando cores...';
+    saveBtn.disabled = true;
+    const dominant = await extractDominantColor(pendingLogo);
+    palette = dominant ? paletteFromColor(dominant) : null;
+    saveBtn.textContent = 'Salvar e aplicar';
+    saveBtn.disabled = false;
+  }
+
+  const hubZoom = Number(document.getElementById('hubZoomInput').value) / 100;
+
+  const brand = {
+    title: titleInput || existing.title || '',
+    logo: logo,
+    bg: pendingBg || existing.bg || null,
+    palette: palette,
+    hubZoom: hubZoom
+  };
+
+  saveBrand(brand);
+  applyBrand(brand);
+
+  const newPrizes = readPrizesFromEditor();
+  localStorage.setItem(PRIZES_KEY, JSON.stringify(newPrizes));
+  applyPrizes(newPrizes);
+
+  closeSettingsPanel();
+});
+
+document.getElementById('settingsResetBtn').addEventListener('click', () => {
+  clearBrand();
+  applyBrand(null);
+
+  localStorage.removeItem(PRIZES_KEY);
+  applyPrizes(DEFAULT_PRIZES);
+
+  closeSettingsPanel();
+});
+
+applyBrand(loadBrand());
 </script>
 </body>
 </html>
