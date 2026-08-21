@@ -47,9 +47,21 @@ export async function buildTotemExportPayload(brandClientRow){
     urlToDataUrl(brandClientRow.bg_url)
   ]);
 
-  const prizes = (Array.isArray(brandClientRow.prizes) && brandClientRow.prizes.length >= MIN_PRIZES && brandClientRow.prizes.length <= MAX_PRIZES)
+  const rawPrizes = (Array.isArray(brandClientRow.prizes) && brandClientRow.prizes.length >= MIN_PRIZES && brandClientRow.prizes.length <= MAX_PRIZES)
     ? brandClientRow.prizes
     : DEFAULT_PRIZES;
+
+  // imagem de cada prêmio também precisa sair como data: URL (nunca uma URL
+  // remota do Storage) -- mesmo motivo da logo/fundo: o totem tem que
+  // conseguir mostrar tudo isso depois de importar, sem precisar de internet.
+  const prizes = await Promise.all(rawPrizes.map(async (prize) => {
+    if(!prize.image_url) return { label: prize.label, type: prize.type };
+    return {
+      label: prize.label,
+      type: prize.type,
+      image: await urlToDataUrl(prize.image_url)
+    };
+  }));
 
   return {
     system: 'giraEGanha',

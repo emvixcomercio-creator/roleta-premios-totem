@@ -117,7 +117,7 @@ import { supabase } from './shared/supabaseClient.js';
 import { requireSession, getMyTenant, logout } from './shared/auth.js';
 import {
   fileToResizedBlob, extractDominantColor, paletteFromColor,
-  addPrizeRow, renderPrizesEditor, readPrizesFromEditor
+  addPrizeRow, renderPrizesEditor, readPrizesFromEditor, readPrizeImageStates
 } from './shared/brandEditor.js';
 import { buildTotemExportPayload } from './shared/exportFormat.js';
 
@@ -253,6 +253,24 @@ saveBtn.addEventListener('click', async () => {
 
     const hubZoom = Number(document.getElementById('hubZoomInput').value) / 100;
     const prizes = readPrizesFromEditor();
+    const prizeImageStates = readPrizeImageStates();
+
+    const pendingPrizeUploads = prizeImageStates
+      .map((state, i) => ({ state, i }))
+      .filter(({ state }) => state.pendingBlob);
+    if(pendingPrizeUploads.length > 0) saveBtn.textContent = 'Enviando fotos dos prêmios...';
+    await Promise.all(pendingPrizeUploads.map(async ({ state, i }) => {
+      const path = `${tenant.tenantId}/${clientId}/prize-${i}-${Date.now()}.${state.pendingBlob.ext}`;
+      const { error: upErr } = await supabase.storage.from('brand-assets').upload(path, state.pendingBlob.blob, { upsert: true, contentType: state.pendingBlob.blob.type });
+      if(upErr) throw upErr;
+      prizes[i].image_url = supabase.storage.from('brand-assets').getPublicUrl(path).data.publicUrl;
+    }));
+    prizeImageStates.forEach((state, i) => {
+      if(state.pendingBlob) return; // já resolvido acima
+      if(state.removed) return; // sem image_url, fica sem foto mesmo
+      if(state.existingUrl) prizes[i].image_url = state.existingUrl;
+    });
+
     const relationshipStatus = document.getElementById('relationshipStatusSelect').value;
     const contactName = document.getElementById('contactNameInput').value.trim() || null;
     const contactPhone = document.getElementById('contactPhoneInput').value.trim() || null;

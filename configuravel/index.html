@@ -577,9 +577,36 @@
   .prize-row{
     display:flex; align-items:center; gap:10px;
   }
-  .prize-row span{
+  .prize-row > span{
     font-size:11px; font-weight:800; color:#aaa;
     width:16px; flex-shrink:0;
+  }
+  .prize-image-thumb{
+    position:relative;
+    flex-shrink:0;
+    width:34px; height:34px;
+    border-radius:8px;
+    background:#f4f4f4;
+    border:2px solid #eee;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    cursor:pointer;
+    color:#b6bccc;
+  }
+  .prize-image-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .prize-image-placeholder{ font-size:15px; }
+  .prize-image-clear{
+    position:absolute;
+    top:-4px; right:-4px;
+    width:15px; height:15px;
+    border-radius:50%;
+    border:none;
+    background:#c0392b;
+    color:#fff;
+    font-size:8px;
+    line-height:1;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
   }
   .prize-row input[type="text"]{
     flex:1;
@@ -821,11 +848,26 @@ function loadPrizes(){
 }
 let PRIZES = loadPrizes() || DEFAULT_PRIZES;
 
+// imagens de prêmio (opcionais) carregam assíncrono -- guarda o Image()
+// já carregado por índice e redesenha a roleta quando cada uma terminar.
+const prizeImageCache = new Map();
+function preloadPrizeImages(){
+  prizeImageCache.clear();
+  PRIZES.forEach((prize, i) => {
+    if(!prize.image) return;
+    const img = new Image();
+    img.onload = () => drawWheel(currentRotation);
+    img.src = prize.image;
+    prizeImageCache.set(i, img);
+  });
+}
+
 // troca a lista de prêmios e recalcula a geometria da roleta (quantidade de gomos pode mudar)
 function applyPrizes(prizes){
   PRIZES = prizes;
   N = PRIZES.length;
   SLICE = (Math.PI * 2) / N;
+  preloadPrizeImages();
   drawWheel(currentRotation);
 }
 
@@ -873,6 +915,21 @@ function drawCurvedText(text, radius, angleCenter, color, fontSize){
   ctx.restore();
 }
 
+// desenha a imagem do prêmio "de pé" no gomo, mesma convenção de rotação
+// do drawCurvedText (só que pra uma imagem inteira, não por caractere).
+// Mantém a proporção original da foto (não estica pra caber no quadrado).
+function drawSegmentImage(img, radius, angleCenter, size){
+  ctx.save();
+  ctx.rotate(angleCenter);
+  ctx.translate(radius, 0);
+  ctx.rotate(Math.PI / 2);
+  const scale = Math.min(size / img.naturalWidth, size / img.naturalHeight);
+  const w = img.naturalWidth * scale;
+  const h = img.naturalHeight * scale;
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+
 function drawWheel(rotation){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
@@ -897,11 +954,21 @@ function drawWheel(rotation){
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // texto curvado
+    // imagem do prêmio (opcional) + texto curvado
     const midAngle = start + SLICE / 2;
     const label = PRIZES[i].label;
-    const fontSize = label.length > 10 ? 33 : 40;
-    drawCurvedText(label, RADIUS - 58, midAngle, TEXT_COLORS[colorIdx], fontSize);
+    const prizeImg = prizeImageCache.get(i);
+    const hasImage = prizeImg && prizeImg.complete && prizeImg.naturalWidth > 0;
+
+    if(hasImage){
+      const imgSize = Math.max(60, Math.min(130, SLICE * (RADIUS * 0.75) * 0.55));
+      drawSegmentImage(prizeImg, RADIUS - 95, midAngle, imgSize);
+      const fontSize = label.length > 10 ? 22 : 26;
+      drawCurvedText(label, RADIUS - 190, midAngle, TEXT_COLORS[colorIdx], fontSize);
+    } else {
+      const fontSize = label.length > 10 ? 33 : 40;
+      drawCurvedText(label, RADIUS - 58, midAngle, TEXT_COLORS[colorIdx], fontSize);
+    }
   }
 
   // anel interno
@@ -914,6 +981,7 @@ function drawWheel(rotation){
   ctx.restore();
 }
 
+preloadPrizeImages();
 drawWheel(currentRotation);
 
 /* =========================================================
@@ -1381,13 +1449,18 @@ function applyBrand(brand){
   applyPalette(brand && brand.palette);
 }
 
-function addPrizeRow(label, type){
+function addPrizeRow(label, type, image){
   const editor = document.getElementById('prizesEditor');
   if(editor.children.length >= MAX_PRIZES) return;
   const row = document.createElement('div');
   row.className = 'prize-row';
   row.innerHTML = `
     <span class="prize-row-num"></span>
+    <label class="prize-image-thumb" title="Foto do prêmio (opcional)">
+      ${image ? `<img src="${image}">` : '<span class="prize-image-placeholder">🖼</span>'}
+      <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+      <button type="button" class="prize-image-clear" title="Remover foto" style="display:${image ? '' : 'none'};">✕</button>
+    </label>
     <input type="text" class="prize-label-input" value="${(label || '').replace(/"/g,'&quot;')}">
     <select class="prize-type-input">
       <option value="win"${type !== 'lose' ? ' selected' : ''}>Ganha</option>
@@ -1399,6 +1472,44 @@ function addPrizeRow(label, type){
     row.remove();
     updatePrizeRowState();
   });
+
+  const thumb = row.querySelector('.prize-image-thumb');
+  const imageInput = row.querySelector('.prize-image-input');
+  const clearBtn = row.querySelector('.prize-image-clear');
+
+  function setThumbImage(dataUrl){
+    thumb.innerHTML = `
+      <img src="${dataUrl}">
+      <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+      <button type="button" class="prize-image-clear" title="Remover foto">✕</button>
+    `;
+    wireThumbEvents();
+  }
+  function clearThumbImage(){
+    thumb.innerHTML = `
+      <span class="prize-image-placeholder">🖼</span>
+      <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+      <button type="button" class="prize-image-clear" title="Remover foto" style="display:none;">✕</button>
+    `;
+    wireThumbEvents();
+  }
+  function wireThumbEvents(){
+    const input = thumb.querySelector('.prize-image-input');
+    const clear = thumb.querySelector('.prize-image-clear');
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const dataUrl = await fileToDataUrl(file, 160, true);
+      setThumbImage(dataUrl);
+    });
+    clear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearThumbImage();
+    });
+  }
+  wireThumbEvents();
+
   editor.appendChild(row);
   updatePrizeRowState();
 }
@@ -1416,16 +1527,21 @@ function updatePrizeRowState(){
 function renderPrizesEditor(prizes){
   const editor = document.getElementById('prizesEditor');
   editor.innerHTML = '';
-  prizes.forEach(prize => addPrizeRow(prize.label, prize.type));
+  prizes.forEach(prize => addPrizeRow(prize.label, prize.type, prize.image));
   updatePrizeRowState();
 }
 
 function readPrizesFromEditor(){
   const rows = document.querySelectorAll('#prizesEditor .prize-row');
-  return Array.from(rows).map(row => ({
-    label: row.querySelector('.prize-label-input').value.trim() || 'Prêmio',
-    type: row.querySelector('.prize-type-input').value
-  }));
+  return Array.from(rows).map(row => {
+    const prize = {
+      label: row.querySelector('.prize-label-input').value.trim() || 'Prêmio',
+      type: row.querySelector('.prize-type-input').value
+    };
+    const img = row.querySelector('.prize-image-thumb img');
+    if(img) prize.image = img.getAttribute('src');
+    return prize;
+  });
 }
 
 function setHubZoomPreview(src, zoomPercent){

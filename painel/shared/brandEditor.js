@@ -134,13 +134,19 @@ export function fileToResizedBlob(file, maxDim, keepTransparency){
 }
 
 /* ---- editor de prêmios (idêntico ao configuravel/index.html) ---- */
-export function addPrizeRow(label, type){
+export function addPrizeRow(label, type, imageUrl){
   const editor = document.getElementById('prizesEditor');
   if(editor.children.length >= MAX_PRIZES) return;
   const row = document.createElement('div');
   row.className = 'prize-row';
+  row._prizeImageState = { pendingBlob: null, removed: false, existingUrl: imageUrl || null };
   row.innerHTML = `
     <span class="prize-row-num"></span>
+    <label class="prize-image-thumb" title="Foto do prêmio (opcional)">
+      ${imageUrl ? `<img src="${imageUrl}">` : '<span class="prize-image-placeholder">🖼</span>'}
+      <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+      <button type="button" class="prize-image-clear" title="Remover foto" style="display:${imageUrl ? '' : 'none'};">✕</button>
+    </label>
     <input type="text" class="prize-label-input" value="${(label || '').replace(/"/g,'&quot;')}">
     <select class="prize-type-input">
       <option value="win"${type !== 'lose' ? ' selected' : ''}>Ganha</option>
@@ -152,6 +158,41 @@ export function addPrizeRow(label, type){
     row.remove();
     updatePrizeRowState();
   });
+
+  const thumb = row.querySelector('.prize-image-thumb');
+  function wireThumbEvents(){
+    const input = thumb.querySelector('.prize-image-input');
+    const clear = thumb.querySelector('.prize-image-clear');
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const result = await fileToResizedBlob(file, 160, true);
+      row._prizeImageState = {
+        pendingBlob: { blob: result.blob, ext: result.ext },
+        removed: false,
+        existingUrl: row._prizeImageState.existingUrl
+      };
+      thumb.innerHTML = `
+        <img src="${result.previewDataUrl}">
+        <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+        <button type="button" class="prize-image-clear" title="Remover foto">✕</button>
+      `;
+      wireThumbEvents();
+    });
+    clear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      row._prizeImageState = { pendingBlob: null, removed: true, existingUrl: row._prizeImageState.existingUrl };
+      thumb.innerHTML = `
+        <span class="prize-image-placeholder">🖼</span>
+        <input type="file" class="prize-image-input" accept="image/*" style="display:none;">
+        <button type="button" class="prize-image-clear" title="Remover foto" style="display:none;">✕</button>
+      `;
+      wireThumbEvents();
+    });
+  }
+  wireThumbEvents();
+
   editor.appendChild(row);
   updatePrizeRowState();
 }
@@ -169,7 +210,7 @@ export function updatePrizeRowState(){
 export function renderPrizesEditor(prizes){
   const editor = document.getElementById('prizesEditor');
   editor.innerHTML = '';
-  prizes.forEach(prize => addPrizeRow(prize.label, prize.type));
+  prizes.forEach(prize => addPrizeRow(prize.label, prize.type, prize.image_url));
   updatePrizeRowState();
 }
 
@@ -179,4 +220,12 @@ export function readPrizesFromEditor(){
     label: row.querySelector('.prize-label-input').value.trim() || 'Prêmio',
     type: row.querySelector('.prize-type-input').value
   }));
+}
+
+// Estado de imagem de cada linha, na mesma ordem/tamanho de readPrizesFromEditor() --
+// o upload pro Storage acontece em cliente.html (só lá tem acesso ao supabase client
+// autenticado), então essa função só expõe o que precisa ser subido/removido/mantido.
+export function readPrizeImageStates(){
+  const rows = document.querySelectorAll('#prizesEditor .prize-row');
+  return Array.from(rows).map(row => row._prizeImageState || { pendingBlob: null, removed: false, existingUrl: null });
 }
