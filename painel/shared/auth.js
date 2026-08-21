@@ -27,7 +27,9 @@ export async function getMyTenant(){
   return { tenantId: data.tenant_id, tenantName: data.tenants?.name, tenantLogoUrl: data.tenants?.logo_url };
 }
 
+// O redirecionamento em si já é feito pelo listener onAuthStateChange
+// (registrado em requireSession) quando a sessão vira null -- não repetir
+// aqui pra não disparar duas navegações concorrentes pro mesmo lugar.
 export async function logout(){
   await supabase.auth.signOut();
-  window.location.href = 'index.html';
 }
