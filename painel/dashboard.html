@@ -9,26 +9,37 @@
 <body>
 
 <div class="panel-header">
-  <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
-  <div class="header-title">
-    Painel de Ativações
-    <small id="tenantName">Carregando...</small>
-  </div>
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
   <button class="logout-btn" id="logoutBtn">Sair</button>
 </div>
 
-<div class="panel-body">
-  <h2>Clientes</h2>
-  <p class="panel-subtitle">Cada card é um cliente que roda no totem (ex: Assaí, Carrefour). Baixe a configuração e importe no totem no dia da ativação.</p>
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html" class="active">👥 Clientes</a>
+    <a href="agenda.html">📅 Agenda</a>
+  </nav>
 
-  <div class="client-grid" id="clientGrid">
-    <div class="new-client-card" id="newClientCard">
-      <span class="plus">+</span>
-      Novo cliente
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2>Clientes</h2>
+      <p class="panel-subtitle">Cada card é um cliente que roda no totem (ex: Assaí, Carrefour). Baixe a configuração e importe no totem no dia da ativação.</p>
+
+      <div class="client-grid" id="clientGrid">
+        <div class="new-client-card" id="newClientCard">
+          <span class="plus">+</span>
+          Novo cliente
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display:none;">Nenhum cliente cadastrado ainda. Toque em "+ Novo cliente" pra começar.</div>
     </div>
   </div>
-
-  <div class="empty-state" id="emptyState" style="display:none;">Nenhum cliente cadastrado ainda. Toque em "+ Novo cliente" pra começar.</div>
 </div>
 
 <script type="module">
@@ -71,13 +82,20 @@ if(error){
   clients.forEach(client => {
     const card = document.createElement('div');
     card.className = 'client-card';
+    const contactLine = client.contact_name || client.contact_phone
+      ? [client.contact_name, client.contact_phone].filter(Boolean).join(' · ')
+      : '';
     card.innerHTML = `
       <div class="client-logo">${client.logo_url ? `<img src="${client.logo_url}" alt="">` : '🎡'}</div>
       <div class="client-name"></div>
       <div class="client-meta">${(client.prizes || []).length} prêmios na roleta</div>
+      ${contactLine ? `<div class="client-meta"></div>` : ''}
       <button type="button" class="client-download">⬇ Baixar configuração</button>
     `;
     card.querySelector('.client-name').textContent = client.title || 'Sem nome';
+    if(contactLine){
+      card.querySelectorAll('.client-meta')[1].textContent = contactLine;
+    }
 
     card.addEventListener('click', () => {
       window.location.href = `cliente.html?id=${client.id}`;
@@ -92,12 +110,12 @@ if(error){
       try{
         const payload = await buildTotemExportPayload(client);
         triggerJsonDownload(payload, slugify(client.title));
-        downloadBtn.textContent = '✅ Baixado!';
+        downloadBtn.textContent = '✅ Salvo na pasta Downloads!';
       } catch(err){
-        downloadBtn.textContent = '⚠️ Erro ao gerar';
+        downloadBtn.textContent = '⚠️ Erro ao gerar arquivo';
         console.error(err);
       }
-      setTimeout(() => { downloadBtn.textContent = original; downloadBtn.disabled = false; }, 1800);
+      setTimeout(() => { downloadBtn.textContent = original; downloadBtn.disabled = false; }, 2600);
     });
 
     grid.appendChild(card);

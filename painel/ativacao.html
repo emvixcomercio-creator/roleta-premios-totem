@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ativação | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html">👥 Clientes</a>
+    <a href="agenda.html" class="active">📅 Agenda</a>
+  </nav>
+
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2 id="formTitle">Nova ativação</h2>
+      <p class="panel-subtitle">Só organização interna da rádio — não afeta o totem nem o arquivo de configuração.</p>
+
+      <div class="form-box">
+        <div class="settings-field">
+          <label for="clientSelect">Cliente</label>
+          <select id="clientSelect"></select>
+        </div>
+
+        <div class="settings-field">
+          <label for="dateInput">Data</label>
+          <input type="date" id="dateInput">
+        </div>
+
+        <div class="settings-field">
+          <label for="locationInput">Local</label>
+          <input type="text" id="locationInput" placeholder="Ex: Assaí - Unidade Barra Funda">
+        </div>
+
+        <div class="settings-field">
+          <label for="statusSelect">Status</label>
+          <select id="statusSelect">
+            <option value="agendada">Agendada</option>
+            <option value="concluida">Concluída</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+
+        <div class="settings-field">
+          <label for="notesInput">Observações</label>
+          <input type="text" id="notesInput" placeholder="Ex: chegar 1h antes pra montar o totem">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-primary" id="saveBtn">Salvar ativação</button>
+          <button type="button" class="btn-secondary" id="cancelBtn">Voltar sem salvar</button>
+          <button type="button" class="btn-danger" id="deleteBtn" style="display:none;">Excluir esta ativação</button>
+        </div>
+        <div class="form-status" id="formStatus"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './shared/supabaseClient.js';
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+document.getElementById('cancelBtn').addEventListener('click', () => { window.location.href = 'agenda.html'; });
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+
+const status = document.getElementById('formStatus');
+function setStatus(text, kind){
+  status.textContent = text;
+  status.className = 'form-status' + (kind ? ' ' + kind : '');
+}
+
+const clientSelect = document.getElementById('clientSelect');
+const { data: clients } = await supabase
+  .from('brand_clients')
+  .select('id, title')
+  .eq('tenant_id', tenant.tenantId)
+  .order('title', { ascending: true });
+
+clientSelect.innerHTML = '<option value="">Nenhum cliente vinculado</option>' +
+  (clients || []).map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+
+const params = new URLSearchParams(window.location.search);
+let existingId = params.get('id');
+
+if(existingId){
+  const { data: row, error } = await supabase
+    .from('activations')
+    .select('*')
+    .eq('id', existingId)
+    .eq('tenant_id', tenant.tenantId)
+    .single();
+
+  if(error || !row){
+    setStatus('Ativação não encontrada.', 'error');
+  } else {
+    document.getElementById('formTitle').textContent = 'Editar ativação';
+    document.getElementById('deleteBtn').style.display = '';
+    clientSelect.value = row.brand_client_id || '';
+    document.getElementById('dateInput').value = row.scheduled_date || '';
+    document.getElementById('locationInput').value = row.location || '';
+    document.getElementById('statusSelect').value = row.status || 'agendada';
+    document.getElementById('notesInput').value = row.notes || '';
+  }
+}
+
+const saveBtn = document.getElementById('saveBtn');
+saveBtn.addEventListener('click', async () => {
+  setStatus('', '');
+  const scheduledDate = document.getElementById('dateInput').value;
+  if(!scheduledDate){ setStatus('⚠️ Escolha uma data.', 'error'); return; }
+
+  const brandClientId = clientSelect.value || null;
+  const clientTitle = brandClientId
+    ? clientSelect.options[clientSelect.selectedIndex].textContent
+    : 'Sem cliente vinculado';
+
+  saveBtn.disabled = true;
+  try{
+    const { data: savedRow, error: saveErr } = await supabase
+      .from('activations')
+      .upsert({
+        id: existingId || crypto.randomUUID(),
+        tenant_id: tenant.tenantId,
+        brand_client_id: brandClientId,
+        client_title: clientTitle,
+        scheduled_date: scheduledDate,
+        location: document.getElementById('locationInput').value.trim() || null,
+        status: document.getElementById('statusSelect').value,
+        notes: document.getElementById('notesInput').value.trim() || null
+      })
+      .select()
+      .single();
+    if(saveErr) throw saveErr;
+
+    existingId = savedRow.id;
+    document.getElementById('deleteBtn').style.display = '';
+    document.getElementById('formTitle').textContent = 'Editar ativação';
+    window.history.replaceState(null, '', `ativacao.html?id=${savedRow.id}`);
+    setStatus('✅ Salvo com sucesso!', 'ok');
+  } catch(err){
+    console.error(err);
+    setStatus('⚠️ ' + (err.message || 'Não foi possível salvar.'), 'error');
+  }
+  saveBtn.disabled = false;
+});
+
+document.getElementById('deleteBtn').addEventListener('click', async () => {
+  if(!existingId) return;
+  if(!confirm('Excluir esta ativação da agenda?')) return;
+  const { error } = await supabase.from('activations').delete().eq('id', existingId).eq('tenant_id', tenant.tenantId);
+  if(error){ setStatus('⚠️ ' + error.message, 'error'); return; }
+  window.location.href = 'agenda.html';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html">👥 Clientes</a>
+    <a href="agenda.html" class="active">📅 Agenda</a>
+  </nav>
+
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2>Agenda de ativações</h2>
+      <p class="panel-subtitle">Datas e locais combinados com cada cliente. Isso é só organização interna — não afeta o totem.</p>
+
+      <div class="activation-list" id="activationList">
+        <div class="new-activation-card" id="newActivationCard">+ Nova ativação</div>
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display:none;">Nenhuma ativação agendada ainda.</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './shared/supabaseClient.js';
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+document.getElementById('newActivationCard').addEventListener('click', () => {
+  window.location.href = 'ativacao.html';
+});
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+
+const list = document.getElementById('activationList');
+const emptyState = document.getElementById('emptyState');
+
+const { data: activations, error } = await supabase
+  .from('activations')
+  .select('*')
+  .eq('tenant_id', tenant.tenantId)
+  .order('scheduled_date', { ascending: true });
+
+const STATUS_LABEL = { agendada: 'Agendada', concluida: 'Concluída', cancelada: 'Cancelada' };
+
+function formatDateBadge(isoDate){
+  const [year, month, day] = isoDate.split('-');
+  return `${day}/${month}`;
+}
+
+if(error){
+  emptyState.textContent = 'Não foi possível carregar a agenda: ' + error.message;
+  emptyState.style.display = 'block';
+} else if(!activations || activations.length === 0){
+  emptyState.style.display = 'block';
+} else {
+  activations.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'activation-row';
+    row.innerHTML = `
+      <div class="activation-date">${formatDateBadge(item.scheduled_date)}</div>
+      <div class="activation-info">
+        <div class="activation-client"></div>
+        <div class="activation-meta"></div>
+      </div>
+      <span class="status-badge ${item.status}">${STATUS_LABEL[item.status] || item.status}</span>
+    `;
+    row.querySelector('.activation-client').textContent = item.client_title || 'Sem cliente';
+    row.querySelector('.activation-meta').textContent = item.location || 'Local não definido';
+    row.addEventListener('click', () => {
+      window.location.href = `ativacao.html?id=${item.id}`;
+    });
+    list.appendChild(row);
+  });
+}
+</script>
+</body>
+</html>
