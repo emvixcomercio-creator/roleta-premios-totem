@@ -31,6 +31,8 @@
       <h2>Clientes</h2>
       <p class="panel-subtitle">Cada card é um cliente que roda no totem (ex: Assaí, Carrefour). Baixe a configuração e importe no totem no dia da ativação.</p>
 
+      <div class="stats-strip" id="statsStrip"></div>
+
       <div class="client-grid" id="clientGrid">
         <div class="new-client-card" id="newClientCard">
           <span class="plus">+</span>
@@ -83,6 +85,41 @@ const STATUS_LABEL = {
   ativacao_realizada: 'Ativação realizada'
 };
 
+// resumo do funil + proxima ativacao agendada
+(async () => {
+  const strip = document.getElementById('statsStrip');
+  if(!clients || clients.length === 0){ return; }
+
+  const counts = { primeiro_contato: 0, proposta_enviada: 0, contrato_fechado: 0, ativacao_agendada: 0, ativacao_realizada: 0 };
+  clients.forEach(c => { const s = c.relationship_status || 'primeiro_contato'; if(counts[s] !== undefined) counts[s]++; });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: nextActivations } = await supabase
+    .from('activations')
+    .select('scheduled_date, client_title, location')
+    .eq('tenant_id', tenant.tenantId)
+    .eq('status', 'agendada')
+    .gte('scheduled_date', today)
+    .order('scheduled_date', { ascending: true })
+    .limit(1);
+  const next = nextActivations && nextActivations[0];
+
+  function formatDate(iso){
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  strip.innerHTML = `
+    <div class="stat-tile"><div class="stat-number">${clients.length}</div><div class="stat-label">Clientes no total</div></div>
+    <div class="stat-tile"><div class="stat-number">${counts.contrato_fechado}</div><div class="stat-label">Contrato fechado</div></div>
+    <div class="stat-tile"><div class="stat-number">${counts.ativacao_agendada}</div><div class="stat-label">Ativação agendada</div></div>
+    <div class="stat-tile highlight">
+      <div class="stat-label">Próxima ativação</div>
+      <div class="stat-number">${next ? `${formatDate(next.scheduled_date)} — ${next.client_title}${next.location ? ' · ' + next.location : ''}` : 'Nenhuma ativação agendada'}</div>
+    </div>
+  `;
+})();
+
 if(error){
   emptyState.textContent = 'Não foi possível carregar os clientes: ' + error.message;
   emptyState.style.display = 'block';
@@ -91,11 +128,11 @@ if(error){
 } else {
   clients.forEach(client => {
     const card = document.createElement('div');
-    card.className = 'client-card';
+    const relStatus = client.relationship_status || 'primeiro_contato';
+    card.className = 'client-card ' + relStatus;
     const contactLine = client.contact_name || client.contact_phone
       ? [client.contact_name, client.contact_phone].filter(Boolean).join(' · ')
       : '';
-    const relStatus = client.relationship_status || 'primeiro_contato';
     const logoInner = client.logo_url ? `<img src="${client.logo_url}" alt="">` : ICON_IMAGE_PLACEHOLDER;
     card.innerHTML = `
       <span class="status-badge ${relStatus}"><span class="status-dot"></span>${STATUS_LABEL[relStatus] || relStatus}</span>
