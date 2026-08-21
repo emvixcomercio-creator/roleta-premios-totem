@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usuários | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Clientes</a>
+    <a href="agenda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Agenda</a>
+    <a href="usuarios.html" class="active"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span> Usuários</a>
+    <a href="ajuda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Ajuda</a>
+  </nav>
+
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2>Usuários</h2>
+      <p class="panel-subtitle">Quem pode entrar nesse painel. Crie um login novo pra cada pessoa da equipe que precisar de acesso.</p>
+
+      <div class="form-box" style="max-width:640px;">
+        <div class="settings-field">
+          <label>Usuários com acesso</label>
+          <div id="usersList" class="user-list"></div>
+          <div class="empty-state" id="usersEmpty" style="display:none; padding:20px 0;">Nenhum usuário encontrado.</div>
+        </div>
+
+        <div class="settings-field">
+          <label>+ Novo usuário</label>
+          <p class="field-hint">Cria um login novo pra outra pessoa da equipe entrar nesse mesmo painel.</p>
+          <input type="email" id="newUserEmail" placeholder="E-mail">
+          <div style="height:10px;"></div>
+          <input type="password" id="newUserPassword" placeholder="Senha (mínimo 6 caracteres)">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-primary" id="createUserBtn">Criar usuário</button>
+        </div>
+        <div class="form-status" id="formStatus"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './shared/supabaseClient.js';
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+
+const status = document.getElementById('formStatus');
+function setStatus(text, kind){
+  status.textContent = text;
+  status.className = 'form-status' + (kind ? ' ' + kind : '');
+}
+
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR');
+}
+
+async function loadUsers(){
+  const list = document.getElementById('usersList');
+  const empty = document.getElementById('usersEmpty');
+  list.innerHTML = '<p class="field-hint">Carregando...</p>';
+
+  const { data, error } = await supabase.functions.invoke('list-tenant-users');
+
+  if(error || data?.error){
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = 'Não foi possível carregar: ' + (data?.error || error.message);
+    return;
+  }
+
+  const users = data.users || [];
+  list.innerHTML = '';
+  if(users.length === 0){
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  users.forEach(u => {
+    const row = document.createElement('div');
+    row.className = 'user-row';
+    row.innerHTML = `
+      <div class="user-email"></div>
+      <div class="user-meta">Adicionado em ${formatDate(u.addedAt)}${u.isSelf ? ' · você' : ''}</div>
+    `;
+    row.querySelector('.user-email').textContent = u.email;
+    list.appendChild(row);
+  });
+}
+
+await loadUsers();
+
+document.getElementById('createUserBtn').addEventListener('click', async () => {
+  setStatus('', '');
+  const email = document.getElementById('newUserEmail').value.trim();
+  const password = document.getElementById('newUserPassword').value;
+
+  if(!email){ setStatus('Digite um e-mail.', 'error'); return; }
+  if(!password || password.length < 6){ setStatus('A senha precisa ter pelo menos 6 caracteres.', 'error'); return; }
+
+  const btn = document.getElementById('createUserBtn');
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Criando...';
+
+  const { data, error } = await supabase.functions.invoke('create-tenant-user', {
+    body: { email, password }
+  });
+
+  if(error || data?.error){
+    setStatus(data?.error || error.message || 'Não foi possível criar o usuário.', 'error');
+  } else {
+    setStatus('Usuário criado com sucesso!', 'ok');
+    document.getElementById('newUserEmail').value = '';
+    document.getElementById('newUserPassword').value = '';
+    await loadUsers();
+  }
+
+  btn.disabled = false;
+  btn.textContent = original;
+});
+</script>
+</body>
+</html>

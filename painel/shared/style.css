@@ -405,7 +405,9 @@ body{
   font-weight:500;
   margin-bottom:0.9vh;
 }
-.settings-field input[type="text"]{
+.settings-field input[type="text"],
+.settings-field input[type="email"],
+.settings-field input[type="password"]{
   width:100%;
   padding:1.3vh 1vh;
   border:2px solid #eee;
@@ -561,3 +563,16 @@ body{
   padding:40px 0;
   font-size:14px;
 }
+
+/* ---------- Lista de usuários ---------- */
+.user-list{
+  display:flex; flex-direction:column;
+  gap:8px;
+}
+.user-row{
+  background:var(--bg);
+  border-radius:10px;
+  padding:12px 16px;
+}
+.user-email{ font-weight:700; font-size:14px; }
+.user-meta{ font-size:12px; color:var(--text-muted); margin-top:2px; }
