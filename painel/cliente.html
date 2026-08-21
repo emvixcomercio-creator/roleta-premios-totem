@@ -21,9 +21,9 @@
 
 <div class="panel-shell">
   <nav class="side-nav">
-    <a href="dashboard.html" class="active">👥 Clientes</a>
-    <a href="agenda.html">📅 Agenda</a>
-    <a href="ajuda.html">❓ Ajuda</a>
+    <a href="dashboard.html" class="active"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Clientes</a>
+    <a href="agenda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Agenda</a>
+    <a href="ajuda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Ajuda</a>
   </nav>
 
   <div class="panel-main">
@@ -32,6 +32,18 @@
       <p class="panel-subtitle">Esses são os mesmos campos do painel de configuração do totem. Depois de salvar, use "Baixar configuração" na lista de clientes pra gerar o arquivo que é importado no totem.</p>
 
       <div class="form-box">
+        <div class="settings-field">
+          <label for="relationshipStatusSelect">Status do relacionamento</label>
+          <p class="field-hint">Onde esse cliente está no funil — aparece como etiqueta no card da lista.</p>
+          <select id="relationshipStatusSelect">
+            <option value="primeiro_contato">Primeiro contato</option>
+            <option value="proposta_enviada">Proposta enviada</option>
+            <option value="contrato_fechado">Contrato fechado</option>
+            <option value="ativacao_agendada">Ativação agendada</option>
+            <option value="ativacao_realizada">Ativação realizada</option>
+          </select>
+        </div>
+
         <div class="settings-field">
           <label for="brandNameInput">Nome do cliente</label>
           <p class="field-hint">Aparece escrito ao lado da logo, no topo da roleta.</p>
@@ -42,7 +54,7 @@
           <label>Logo</label>
           <p class="field-hint">As cores da roleta mudam automaticamente pra cor predominante dessa imagem. Fica melhor com fundo transparente (PNG).</p>
           <div class="settings-upload">
-            <div class="settings-preview" id="logoPreview">★</div>
+            <div class="settings-preview" id="logoPreview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="60%" height="60%"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
             <input type="file" id="logoInput" accept="image/*">
           </div>
         </div>
@@ -60,7 +72,7 @@
           <label>Imagem de fundo (opcional)</label>
           <p class="field-hint">Se enviar uma foto aqui, ela cobre a tela inteira atrás da roleta. Se deixar em branco, o fundo usa a cor da marca com a logo pequena repetida por trás.</p>
           <div class="settings-upload">
-            <div class="settings-preview" id="bgPreview">🖼</div>
+            <div class="settings-preview" id="bgPreview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="60%" height="60%"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
             <input type="file" id="bgInput" accept="image/*">
           </div>
         </div>
@@ -167,6 +179,7 @@ if(existingId){
     document.getElementById('formTitle').textContent = 'Editar cliente';
     document.getElementById('deleteBtn').style.display = '';
     document.getElementById('brandNameInput').value = row.title || '';
+    document.getElementById('relationshipStatusSelect').value = row.relationship_status || 'primeiro_contato';
     document.getElementById('contactNameInput').value = row.contact_name || '';
     document.getElementById('contactPhoneInput').value = row.contact_phone || '';
     document.getElementById('notesInput').value = row.notes || '';
@@ -207,7 +220,7 @@ const saveBtn = document.getElementById('saveBtn');
 saveBtn.addEventListener('click', async () => {
   setStatus('', '');
   const title = document.getElementById('brandNameInput').value.trim();
-  if(!title){ setStatus('⚠️ Digite o nome do cliente.', 'error'); return; }
+  if(!title){ setStatus('Digite o nome do cliente.', 'error'); return; }
 
   saveBtn.disabled = true;
   const originalText = saveBtn.textContent;
@@ -240,6 +253,7 @@ saveBtn.addEventListener('click', async () => {
 
     const hubZoom = Number(document.getElementById('hubZoomInput').value) / 100;
     const prizes = readPrizesFromEditor();
+    const relationshipStatus = document.getElementById('relationshipStatusSelect').value;
     const contactName = document.getElementById('contactNameInput').value.trim() || null;
     const contactPhone = document.getElementById('contactPhoneInput').value.trim() || null;
     const notes = document.getElementById('notesInput').value.trim() || null;
@@ -256,6 +270,7 @@ saveBtn.addEventListener('click', async () => {
         palette,
         hub_zoom: hubZoom,
         prizes,
+        relationship_status: relationshipStatus,
         contact_name: contactName,
         contact_phone: contactPhone,
         notes
@@ -292,10 +307,10 @@ saveBtn.addEventListener('click', async () => {
     document.getElementById('formTitle').textContent = 'Editar cliente';
     window.history.replaceState(null, '', `cliente.html?id=${savedRow.id}`);
 
-    setStatus('✅ Salvo com sucesso!', 'ok');
+    setStatus('Salvo com sucesso!', 'ok');
   } catch(err){
     console.error(err);
-    setStatus('⚠️ ' + (err.message || 'Não foi possível salvar.'), 'error');
+    setStatus((err.message || 'Não foi possível salvar.'), 'error');
   }
 
   saveBtn.disabled = false;
@@ -306,7 +321,7 @@ document.getElementById('deleteBtn').addEventListener('click', async () => {
   if(!existingId) return;
   if(!confirm('Excluir este cliente? As cópias de backup continuam guardadas, mas a ficha ativa some da lista.')) return;
   const { error } = await supabase.from('brand_clients').delete().eq('id', existingId).eq('tenant_id', tenant.tenantId);
-  if(error){ setStatus('⚠️ ' + error.message, 'error'); return; }
+  if(error){ setStatus(error.message, 'error'); return; }
   window.location.href = 'dashboard.html';
 });
 </script>
