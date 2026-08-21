@@ -77,6 +77,22 @@ function formatDate(iso){
   return d.toLocaleDateString('pt-BR');
 }
 
+// Quando a Edge Function responde com erro (400/401/403...), o supabase-js
+// NÃO preenche `data` -- a mensagem real (ex: "e-mail já cadastrado") vem
+// dentro de `error.context`, um Response cru que precisa ser lido à parte.
+// Sem isso, só aparece a mensagem genérica "Edge Function returned a
+// non-2xx status code".
+async function extractFunctionError(error){
+  if(!error) return 'Erro inesperado.';
+  try{
+    if(error.context && typeof error.context.json === 'function'){
+      const body = await error.context.json();
+      if(body?.error) return body.error;
+    }
+  } catch(e){ /* corpo não era JSON -- usa a mensagem generica abaixo */ }
+  return error.message || 'Erro inesperado.';
+}
+
 async function loadUsers(){
   const list = document.getElementById('usersList');
   const empty = document.getElementById('usersEmpty');
@@ -87,7 +103,7 @@ async function loadUsers(){
   if(error || data?.error){
     list.innerHTML = '';
     empty.style.display = 'block';
-    empty.textContent = 'Não foi possível carregar: ' + (data?.error || error.message);
+    empty.textContent = 'Não foi possível carregar: ' + (data?.error || await extractFunctionError(error));
     return;
   }
 
@@ -131,7 +147,7 @@ document.getElementById('createUserBtn').addEventListener('click', async () => {
   });
 
   if(error || data?.error){
-    setStatus(data?.error || error.message || 'Não foi possível criar o usuário.', 'error');
+    setStatus(data?.error || await extractFunctionError(error), 'error');
   } else {
     setStatus('Usuário criado com sucesso!', 'ok');
     document.getElementById('newUserEmail').value = '';
