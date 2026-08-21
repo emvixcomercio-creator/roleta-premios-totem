@@ -413,6 +413,7 @@ body{
 }
 .prize-row select{
   flex-shrink:0;
+  width:auto;
   padding:0.9vh 0.4vh;
   border:2px solid #eee;
   border-radius:8px;
