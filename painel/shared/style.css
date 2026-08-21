@@ -228,21 +228,21 @@ body{
 }
 .settings-upload{ display:flex; align-items:center; gap:12px; }
 .settings-preview{
-  width:56px; height:56px;
-  border-radius:12px;
+  width:96px; height:96px;
+  border-radius:14px;
   background:#f4f4f4;
   border:2px solid #eee;
   display:flex; align-items:center; justify-content:center;
   overflow:hidden;
   flex-shrink:0;
-  font-size:22px;
+  font-size:32px;
 }
-.settings-preview img{ width:100%; height:100%; object-fit:cover; }
+.settings-preview img{ width:100%; height:100%; object-fit:contain; }
 .settings-upload input[type="file"]{ flex:1; font-size:12px; }
 
 .hub-zoom-row{ display:flex; align-items:center; gap:14px; }
 .hub-zoom-preview{
-  width:64px; height:64px;
+  width:96px; height:96px;
   border-radius:50%;
   background:#fff;
   border:2px solid #eee;
