@@ -275,6 +275,20 @@ body{
 .client-card .client-download:active{ background:#f0f0f0; }
 .client-card .client-download.success{ color:#1a8a4a; border-color:#1a8a4a; background:#f0fbf3; }
 .client-card .client-download.error{ color:#c0392b; border-color:#c0392b; background:#fdf1f1; }
+.client-card .client-delete{
+  display:block;
+  width:100%;
+  text-align:center;
+  margin-top:8px;
+  border:none; outline:none; cursor:pointer;
+  font-family:inherit; font-weight:700;
+  color:#999;
+  background:transparent;
+  padding:2px 0;
+  font-size:11px;
+  text-decoration:underline;
+}
+.client-card .client-delete:hover{ color:#c0392b; }
 
 .new-client-card{
   background:transparent;
@@ -563,6 +577,80 @@ body{
   padding:40px 0;
   font-size:14px;
 }
+
+/* ---------- Fluxo de treinamento ---------- */
+.flow-zone{
+  border-radius:14px;
+  padding:22px;
+  margin-bottom:18px;
+}
+.flow-zone.zone-online{ background:#eef1f9; border:1px solid #dbe1f0; }
+.flow-zone.zone-offline{ background:linear-gradient(160deg, var(--navy), var(--navy-dark)); }
+.flow-zone-label{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:0.6px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.flow-zone.zone-online .flow-zone-label{ color:var(--navy); }
+.flow-zone.zone-offline .flow-zone-label{ color:var(--cyan); }
+.flow-zone-hint{
+  font-size:12px;
+  margin-bottom:16px;
+}
+.flow-zone.zone-online .flow-zone-hint{ color:var(--text-muted); }
+.flow-zone.zone-offline .flow-zone-hint{ color:#a9b4d6; }
+
+.flow-steps{
+  display:flex;
+  align-items:stretch;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.flow-step{
+  flex:1 1 170px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+  padding:16px;
+  border-radius:10px;
+}
+.zone-online .flow-step{ background:#fff; }
+.zone-offline .flow-step{ background:rgba(255,255,255,0.07); }
+.flow-step-num{
+  width:26px; height:26px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800;
+  flex-shrink:0;
+}
+.zone-online .flow-step-num{ background:var(--navy); color:#fff; }
+.zone-offline .flow-step-num{ background:var(--cyan); color:var(--navy-dark); }
+.flow-step-title{ font-size:13px; font-weight:700; }
+.zone-online .flow-step-title{ color:var(--text); }
+.zone-offline .flow-step-title{ color:#fff; }
+.flow-step-desc{ font-size:12px; line-height:1.45; }
+.zone-online .flow-step-desc{ color:var(--text-muted); }
+.zone-offline .flow-step-desc{ color:#a9b4d6; }
+
+.flow-arrow{
+  display:flex; align-items:center; justify-content:center;
+  flex:0 0 20px;
+  opacity:0.45;
+}
+.zone-online .flow-arrow{ color:var(--navy); }
+.zone-offline .flow-arrow{ color:var(--cyan); }
+
+.flow-bridge{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 4px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-muted);
+}
+.flow-bridge svg{ flex-shrink:0; color:var(--orange); }
 
 /* ---------- Lista de usuários ---------- */
 .user-list{

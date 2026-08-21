@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treinamento | Painel Gira e Ganha</title>
+<link rel="stylesheet" href="shared/style.css">
+</head>
+<body>
+
+<div class="panel-header">
+  <a class="header-brand" href="dashboard.html">
+    <img class="header-logo" src="assets/radio-transcontinental-logo.png" alt="">
+    <div class="header-title">
+      Painel de Ativações
+      <small id="tenantName">Carregando...</small>
+    </div>
+  </a>
+  <button class="logout-btn" id="logoutBtn">Sair</button>
+</div>
+
+<div class="panel-shell">
+  <nav class="side-nav">
+    <a href="dashboard.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Clientes</a>
+    <a href="agenda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Agenda</a>
+    <a href="usuarios.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span> Usuários</a>
+    <a href="ajuda.html"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Ajuda</a>
+    <a href="treinamento.html" class="active"><span class="icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span> Treinamento</a>
+  </nav>
+
+  <div class="panel-main">
+    <div class="panel-body">
+      <h2>Treinamento</h2>
+      <p class="panel-subtitle">O fluxo completo em uma imagem só: do cadastro no painel até a roleta girando na rua, sem internet.</p>
+
+      <div class="form-box" style="max-width:820px; text-align:left;">
+
+        <div class="flow-zone zone-online">
+          <div class="flow-zone-label">Etapa 1 · No escritório, com internet</div>
+          <div class="flow-zone-hint">Feito uma vez, antes de sair pra ativação.</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-num">1</div>
+              <div class="flow-step-title">Cadastrar o cliente</div>
+              <div class="flow-step-desc">Em Clientes → Novo cliente: nome, logo, prêmios. As cores da roleta se ajustam sozinhas à logo.</div>
+            </div>
+            <div class="flow-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+            <div class="flow-step">
+              <div class="flow-step-num">2</div>
+              <div class="flow-step-title">Baixar configuração</div>
+              <div class="flow-step-desc">No card do cliente, toque em "Baixar configuração" — gera um arquivo .json na pasta Downloads.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-bridge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          Leve esse arquivo até o totem — pendrive, WhatsApp, o que for mais fácil.
+        </div>
+
+        <div class="flow-zone zone-offline">
+          <div class="flow-zone-label">Etapa 2 · Na rua, sem internet</div>
+          <div class="flow-zone-hint">O totem nunca depende de sinal pra funcionar.</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-num">3</div>
+              <div class="flow-step-title">Abrir a configuração</div>
+              <div class="flow-step-desc">Toque e segure o dedo por 1,5s no canto superior direito da tela da roleta.</div>
+            </div>
+            <div class="flow-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+            <div class="flow-step">
+              <div class="flow-step-num">4</div>
+              <div class="flow-step-title">Importar o arquivo</div>
+              <div class="flow-step-desc">Toque em Importar e escolha o arquivo .json — pelo seletor normal do sistema, sem comando nenhum.</div>
+            </div>
+            <div class="flow-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+            <div class="flow-step">
+              <div class="flow-step-num">5</div>
+              <div class="flow-step-title">Roleta no ar</div>
+              <div class="flow-step-desc">A marca do cliente aparece na hora. Fica salva no totem, funciona mesmo sem internet dali em diante.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-field" style="margin-top:8px;">
+          <label>Quer ajustar algo rápido, ali na hora?</label>
+          <p class="field-hint">
+            Sem problema — o mesmo painel de configuração local (a engrenagem escondida) deixa trocar logo,
+            fundo, nome e prêmios direto no totem, sem internet. É só repetir o toque-e-segure de 1,5s.
+            O arquivo .json do painel é o jeito organizado de preparar tudo antes; a engrenagem no totem é
+            o plano B pra ajustes de última hora.
+          </p>
+        </div>
+
+        <div class="settings-field">
+          <label>Precisa de mais detalhes?</label>
+          <p class="field-hint">
+            A página <a href="ajuda.html">Ajuda</a> tem o passo a passo por escrito e as perguntas mais
+            frequentes.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { requireSession, getMyTenant, logout } from './shared/auth.js';
+
+await requireSession();
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+const tenant = await getMyTenant();
+document.getElementById('tenantName').textContent = tenant.tenantName || '';
+</script>
+</body>
+</html>
