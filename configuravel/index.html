@@ -442,6 +442,8 @@
   /* ---------- Logo customizada (tamanho/enquadramento tratados em .header-logo.custom) ---------- */
 
   /* ---------- Botão de engrenagem (abre configurações) ---------- */
+  /* Invisível por padrão: só aparece durante um toque-e-segure (1.5s) no canto,
+     pra não distrair o cliente final durante a apresentação da roleta. */
   .settings-btn{
     position:absolute;
     top:1.2vh; right:1.5vw;
@@ -457,8 +459,13 @@
     cursor:pointer;
     backdrop-filter:blur(2px);
     touch-action:manipulation;
+    opacity:0;
+    -webkit-tap-highlight-color:transparent;
   }
-  .settings-btn:active{ transform:scale(0.92); }
+  .settings-btn.pressing{
+    opacity:0.9;
+    transition:opacity 1.5s linear;
+  }
 
   /* ---------- Painel de configurações ---------- */
   .settings-overlay{
@@ -505,6 +512,13 @@
     line-height:1.5;
     text-align:center;
     margin-bottom:2.6vh;
+  }
+  .settings-gesture-note{
+    background:#fff6e0;
+    border:1px solid #f0d998;
+    border-radius:10px;
+    padding:1.2vh 3vw;
+    color:#7a5c10;
   }
   .field-hint{
     font-size:12px;
@@ -668,7 +682,7 @@
       <div class="header-title" id="headerTitle">Benefícios</div>
     </div>
 
-    <div class="setup-hint" id="setupHint">👆 Toque na engrenagem no canto pra configurar a marca deste totem</div>
+    <div class="setup-hint" id="setupHint">👆 Toque e segure o dedo por 1,5s no canto superior direito pra configurar a marca deste totem</div>
 
     <div class="wheel-stage">
       <div class="wheel-wrap">
@@ -706,6 +720,7 @@
     <button class="settings-btn-close" id="settingsCloseBtn">✕</button>
     <h3>Configurar Marca</h3>
     <p class="settings-intro">Use esta tela pra trocar a marca do totem antes de cada ativação. Tudo é salvo neste aparelho e aplicado na hora, sem precisar de internet.</p>
+    <p class="settings-intro settings-gesture-note">💡 Pra abrir esta tela de novo depois, o botão de engrenagem fica escondido: <strong>toque e segure o dedo por 1,5 segundo no canto superior direito</strong> da tela da roleta.</p>
 
     <div class="settings-field">
       <label for="brandNameInput">Nome da marca</label>
@@ -1427,7 +1442,32 @@ function closeSettingsPanel(){
   document.getElementById('settingsOverlay').classList.remove('active');
 }
 
-document.getElementById('settingsBtn').addEventListener('click', openSettingsPanel);
+(function(){
+  const settingsBtn = document.getElementById('settingsBtn');
+  const LONG_PRESS_MS = 1500;
+  let pressTimer = null;
+
+  function startPress(e){
+    e.preventDefault();
+    if(pressTimer) return;
+    settingsBtn.classList.add('pressing');
+    pressTimer = setTimeout(() => {
+      pressTimer = null;
+      settingsBtn.classList.remove('pressing');
+      openSettingsPanel();
+    }, LONG_PRESS_MS);
+  }
+  function cancelPress(){
+    if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; }
+    settingsBtn.classList.remove('pressing');
+  }
+
+  settingsBtn.addEventListener('pointerdown', startPress);
+  settingsBtn.addEventListener('pointerup', cancelPress);
+  settingsBtn.addEventListener('pointerleave', cancelPress);
+  settingsBtn.addEventListener('pointercancel', cancelPress);
+  settingsBtn.addEventListener('contextmenu', e => e.preventDefault());
+})();
 document.getElementById('settingsCloseBtn').addEventListener('click', closeSettingsPanel);
 document.getElementById('prizeAddBtn').addEventListener('click', () => addPrizeRow('Prêmio', 'win'));
 
